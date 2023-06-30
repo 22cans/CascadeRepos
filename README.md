@@ -24,7 +24,7 @@ The main benefits of using the Cascade Repository are:​
 
 ## Getting Started
 
-### Instalation
+### Installation
 
 The Cascade Repository library is available as a NuGet package. You can install it using the NuGet Package Manager or by using the .NET CLI.
 
@@ -33,6 +33,42 @@ dotnet add package CascadeRepository
 ```
 
 ### Dependency Injection
+
+To use the Cascade Repository with MemoryCache and Redis, you can set up the required services in your dependency injection container.
+
+#### MemoryCache
+
+Add the MemoryCache service to your service configuration:
+
+```csharp
+services.AddMemoryCache();
+```
+
+#### Redis
+
+To use Redis, you need to set up the `IConnectionMultiplexer` service. Here's an example of setting up Redis with the StackExchange.Redis library:
+
+```csharp
+services.AddSingleton<IConnectionMultiplexer>(_ =>
+    ConnectionMultiplexer.Connect(new ConfigurationOptions
+    {
+        EndPoints = { { "your-host-come-here", 6379 } },
+        DefaultDatabase = 0,
+        AbortOnConnectFail = false
+    }));
+```
+
+#### DynamoDB
+
+To use DynamoDB, you need to set up the `IDynamoDBContext` service from the AWS SDK. Here's an example of setting up DynamoDB with the `AmazonDynamoDBClient` and `DynamoDBContext`:
+
+```csharp
+var client = new AmazonDynamoDBClient();
+var dbContext = new DynamoDBContext(client);
+services.AddSingleton<IDynamoDBContext>(dbContext);
+```
+
+### Cascade
 
 To use the Cascade Repository with MemoryCache and Redis repositories, you can set it up as follows:
 
@@ -60,9 +96,27 @@ services
         typeof(DynamoDbRepository<,>));
 ```
 
+### Configuration
+
+The Cascade Repository can be configured using app settings. Here's an example configuration for MemoryCache and Redis:
+
+```json
+"Cascade": {
+  "MemoryCache": {
+    "TimeToLiveInSeconds": 60
+  },
+  "Redis": {
+    "TimeToLiveInSeconds": null,
+    "TimeToLiveInSecondsByEntity": {
+      "ProductCategory": 300
+    }
+  }
+}
+```
+
 ### Usage
 
-Here's an example of how to use the Cascade Repository in a `ProductCategoryService` class. In this example, the `GetById()` method retrieves a `ProductCategory` by its ID, with the option to bypass caching.
+Once you have set up the services and configuration, you can use the Cascade Repository in your code. Here's an example of how to use it:
 
 ```csharp
 public class ProductCategoryService 
@@ -94,13 +148,16 @@ public class ProductCategoryService
         if (!useCache)
             SkipCascadeCache();
 
-        return _cascade.Get(id, true, cancellationToken);
+        return await _cascade.Get(id, true, cancellationToken);
     }
 }
-
 ```
 
-In this example, if you call `ProductCategoryService.GetById()` with `useCache=false`, the Cascade Repository skips the MemoryCache and Redis repositories and goes straight to DynamoDb. However, it will still update both repositories after retrieving the value from DynamoDb.
+In the above example, the `ProductCategoryService` class demonstrates how to use the Cascade Repository. It retrieves the product category by id, with an option to skip the cache. The key adapters and cache skipping are shown as examples of how to customize the behavior.
+
+Make sure to adjust the class names and types to match your application.
+
+That's it! You're now ready to use the Cascade Repository in your application.
 
 ## Contributing
 
