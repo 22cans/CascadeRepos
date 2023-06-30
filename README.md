@@ -100,7 +100,7 @@ public class ProductCategoryService
 
 ```
 
-In this example, if you call ProductCategoryService.GetById() with useCache=false, the Cascade Repository skips the MemoryCache and Redis repositories and goes straight to DynamoDb. However, it will still update both repositories after retrieving the value from DynamoDb.
+In this example, if you call `ProductCategoryService.GetById()` with `useCache=false`, the Cascade Repository skips the MemoryCache and Redis repositories and goes straight to DynamoDb. However, it will still update both repositories after retrieving the value from DynamoDb.
 
 ## Contributing
 
