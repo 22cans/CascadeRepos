@@ -1,0 +1,79 @@
+on:
+  workflow_call:
+    inputs:
+      VERSION:
+        type: string
+
+jobs:
+  seed:
+    name: Post deploy actions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      #################################################################################################################
+      # Create JIRA deployment
+      #################################################################################################################
+      
+      - name: Get related tickets
+        id: get_issues
+        if: success() || failure()
+        run: |
+          CHANGELOG=$(echo "${{ github.event.release.body }}" | tr -d "'" | grep -io 'LBE-[0-9]\+' | sort | uniq )
+          TICKETS="\""$(echo $CHANGELOG | sed ':a;N;$!ba;s/\n/","/g')"\""
+          echo DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z") >> "$GITHUB_OUTPUT"
+          echo "ISSUES=$TICKETS" >> "$GITHUB_OUTPUT"
+
+      - name: Get Success Deploy
+        if: success()
+        run: |
+          echo "STATUS=successful" >> "$GITHUB_ENV"
+
+      - name: Get Success Deploy
+        if: failure()
+        run: |
+          echo "STATUS=failed" >> "$GITHUB_ENV"
+
+      - name: Creating payload
+        if: success() || failure()
+        run: |
+          cd ${{ github.workspace }}
+          echo "Status: ${{ env.STATUS }}"
+          PAYLOAD=$(cat jira-deployment.json)
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_DEPLOYMENTSEQUENCENUMBER__/${{ github.run_number }}/g')
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_ISSUEKEYS__/${{ steps.get_issues.outputs.ISSUES }}/g')          
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_DISPLAYNAME__/Publish version ${{ inputs.VERSION }}/g')
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_URL__/https:\/\/github.com\/22cans\/Cascade\/actions\/runs\/${{ github.run_id }}/g')
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_DESCRIPTION__/${{ inputs.VERSION }}/g')
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_LASTUPDATED__/${{ steps.get_issues.outputs.DATE }}/g')
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_ENVIRONMENT_ID__/Cascade/g')
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_ENVIRONMENT_DISPLAYNAME__/Cascade/g')
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_ENVIRONMENT_TYPE__/production/g')
+          PAYLOAD=$(echo $PAYLOAD | sed 's/__DEPLOYMENTS_STATE__/${{ env.STATUS }}/g')
+          echo $PAYLOAD > jira-deployment.json
+          cat jira-deployment.json
+          
+      - name: Get JIRA Access Token
+        id: get_access_token
+        if: success() || failure()
+        run: |
+          RESPONSE=$(curl --location 'https://api.atlassian.com/oauth/token' \
+          --header 'Content-Type: application/json' \
+          --data '{
+              "audience": "api.atlassian.com",
+              "grant_type": "client_credentials",
+              "client_id": "C7lU6ZQbjpQBeEfq5GT3H23MFOqFZ3MQ",
+              "client_secret": "${{ secrets.JIRA_TOKEN }}"
+          }')
+          echo "OAUTH_RESPONSE=$RESPONSE" >> "$GITHUB_OUTPUT"
+
+      - name: Send request to JIRA
+        if: success() || failure()
+        run: |
+          curl --location 'https://api.atlassian.com/jira/deployments/0.1/cloud/dde3b84e-4f7f-42e2-bd63-15e61607febe/bulk' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Bearer ${{ fromJson(steps.get_access_token.outputs.OAUTH_RESPONSE)['access_token'] }}' \
+            --data '@jira-deployment.json'

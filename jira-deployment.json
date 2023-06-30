@@ -1,0 +1,25 @@
+{
+  "deployments": [
+    {
+      "deploymentSequenceNumber": __DEPLOYMENTS_DEPLOYMENTSEQUENCENUMBER__,
+      "updateSequenceNumber": 1,
+      "issueKeys": [__DEPLOYMENTS_ISSUEKEYS__],
+      "displayName": "__DEPLOYMENTS_DISPLAYNAME__", 
+      "url": "__DEPLOYMENTS_URL__", 
+      "description": "__DEPLOYMENTS_DESCRIPTION__", 
+      "lastUpdated": "__DEPLOYMENTS_LASTUPDATED__",
+      "state": "__DEPLOYMENTS_STATE__",
+      "pipeline": {
+        "id": "push",
+        "displayName": "Cascade",
+        "url": "https://github.com/22cans/Cascade/actions/workflows/push.yml"
+      },
+      "environment": {
+        "id": "__DEPLOYMENTS_ENVIRONMENT_ID__", 
+        "displayName": "__DEPLOYMENTS_ENVIRONMENT_DISPLAYNAME__",
+        "type": "__DEPLOYMENTS_ENVIRONMENT_TYPE__"
+      },
+      "schemaVersion": "1.0"
+    }
+  ]
+}

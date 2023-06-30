@@ -1,0 +1,25 @@
+name: Push Action
+
+on:
+  push:
+    branches: 
+      - 'main'
+  release:
+    types: [published]
+
+jobs:
+  build_and_test:
+    name: Build and Test
+    uses: ./.github/workflows/build_and_test.yml
+    secrets: inherit
+    with:
+      configuration: Release
+
+  post_deploy:
+    name: Post deploy actions
+    if: github.event_name == 'release'
+    needs: [build_and_test]
+    uses: ./.github/workflows/post_deploy.yml
+    secrets: inherit
+    with:
+      VERSION: ${{ needs.build_and_test.outputs.VERSION }}
