@@ -1,0 +1,13 @@
+name: Push Trigger to test actions and jobs
+
+on:
+  push:
+    branches: 
+      - 'features/SOME_BRANCH**'
+      
+jobs:
+  some_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3

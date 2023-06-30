@@ -1,0 +1,12 @@
+name: Pull Request Action
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test:
+    name: Build and Test
+    uses: ./.github/workflows/build_and_test.yml
+    with:
+      configuration: Debug

@@ -1,0 +1,80 @@
+on:
+  workflow_call:
+    inputs:
+      configuration:
+        type: string
+    outputs:
+      VERSION:
+        value: ${{ jobs.build.outputs.VERSION}}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.get_version.outputs.VERSION }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Get Version Pull Request / Push
+      if: github.event_name == 'pull_request' || github.event_name == 'push'
+      run: |
+        echo "TEMP_VERSION=v0.0.0" >> "$GITHUB_ENV"
+
+    - name: Get Version Release
+      if: github.event_name == 'release'
+      run: |
+        echo "TEMP_VERSION=${{ github.event.release.name }}" >> "$GITHUB_ENV"
+
+    - name:  Get Definitive Version
+      id: get_version
+      run: |
+        VERSION_NUMBER="${{ env.TEMP_VERSION }}"
+        echo "VERSION=${VERSION_NUMBER:1}" >> "$GITHUB_ENV"
+        echo "VERSION=${VERSION_NUMBER:1}" >> "$GITHUB_OUTPUT"
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore -c ${{ inputs.configuration }} /p:Version=${{ env.VERSION }}
+      
+    - name: Test
+      if: github.event_name == 'pull_request'
+      run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage /p:Version=${{ env.VERSION }}
+      
+    - name: Code Coverage Report
+      if: github.event_name == 'pull_request'
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage/**/coverage.cobertura.xml
+        badge: true
+        fail_below_min: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: false
+        indicators: true
+        output: both
+        thresholds: '65 85'
+
+    - name: Add Coverage PR Comment
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        recreate: true
+        path: code-coverage-results.md
+
+    - name: Pack
+      if: github.event_name == 'release'
+      run: |
+        dotnet pack --configuration Release /p:Version=${{ env.VERSION }} --no-build --output .
+
+    - name: Nuget Push
+      if: github.event_name == 'release'
+      run: |
+        dotnet nuget push DynaMight.${{ env.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
