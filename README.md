@@ -29,7 +29,7 @@ The main benefits of using Cascade are:​
 The Cascade library is available as a NuGet package. You can install it using the NuGet Package Manager or by using the .NET CLI.
 
 ```shell
-dotnet add package CascadeRepository
+dotnet add package Cascade
 ```
 
 ### Dependency Injection
@@ -68,7 +68,7 @@ var dbContext = new DynamoDBContext(client);
 services.AddSingleton<IDynamoDBContext>(dbContext);
 ```
 
-### Cascade
+#### Cascade
 
 To use Cascade with MemoryCache and Redis repositories, you can set it up as follows:
 
