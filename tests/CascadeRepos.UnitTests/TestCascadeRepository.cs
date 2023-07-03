@@ -1,4 +1,4 @@
-﻿namespace Cascade.UnitTests;
+﻿namespace CascadeRepos.UnitTests;
 
 internal class TestCascadeRepository<T, K> : CascadeRepository<T, K>
 {

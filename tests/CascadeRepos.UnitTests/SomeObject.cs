@@ -1,4 +1,4 @@
-﻿namespace Cascade.UnitTests;
+﻿namespace CascadeRepos.UnitTests;
 
 public class SomeObject
 {

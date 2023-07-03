@@ -6,7 +6,7 @@ using Moq;
 using StackExchange.Redis;
 using Xunit;
 
-namespace Cascade.UnitTests;
+namespace CascadeRepos.UnitTests;
 
 public class CascadeRepositoryRegistrarTests
 {
@@ -20,8 +20,8 @@ public class CascadeRepositoryRegistrarTests
         services.AddTransient(_ => Mock.Of<IDynamoDBContext>());
         var configValues = new Dictionary<string, string>
         {
-            ["Cascade:MemoryCache:TimeToLiveInSeconds"] = "60",
-            ["Cascade:Redis:TimeToLiveInSeconds"] = "300"
+            ["CascadeRepos:MemoryCache:TimeToLiveInSeconds"] = "60",
+            ["CascadeRepos:Redis:TimeToLiveInSeconds"] = "300"
         };
         var configurationBuilder = new ConfigurationBuilder().AddInMemoryCollection(configValues!);
         var configuration = configurationBuilder.Build();
@@ -50,8 +50,8 @@ public class CascadeRepositoryRegistrarTests
         services.AddTransient(_ => Mock.Of<IDynamoDBContext>());
         var configValues = new Dictionary<string, string>
         {
-            ["Cascade:MemoryCache:TimeToLiveInSeconds"] = "60",
-            ["Cascade:Redis:TimeToLiveInSeconds"] = "300"
+            ["CascadeRepos:MemoryCache:TimeToLiveInSeconds"] = "60",
+            ["CascadeRepos:Redis:TimeToLiveInSeconds"] = "300"
         };
         var configurationBuilder = new ConfigurationBuilder().AddInMemoryCollection(configValues!);
         var configuration = configurationBuilder.Build();

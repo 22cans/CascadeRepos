@@ -1,4 +1,4 @@
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Represents a base class for implementing a cascade repository.

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Represents an interface for a Redis repository.
@@ -119,5 +119,5 @@ public class RedisRepositoryOptions : CascadeRepositoryOptions
     /// <summary>
     ///     The configuration path for the Redis repository options.
     /// </summary>
-    public const string ConfigPath = "Cascade:Redis";
+    public const string ConfigPath = "CascadeRepos:Redis";
 }

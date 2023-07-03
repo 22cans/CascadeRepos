@@ -2,7 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace Cascade.UnitTests;
+namespace CascadeRepos.UnitTests;
 
 public class GenericRepositoryTests
 {

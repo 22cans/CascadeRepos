@@ -1,4 +1,4 @@
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Represents the interface for a cascade repository.

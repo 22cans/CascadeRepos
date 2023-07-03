@@ -7,7 +7,7 @@ using Moq;
 using StackExchange.Redis;
 using Xunit;
 
-namespace Cascade.UnitTests;
+namespace CascadeRepos.UnitTests;
 
 public class CascadeRepositoryTests
 {

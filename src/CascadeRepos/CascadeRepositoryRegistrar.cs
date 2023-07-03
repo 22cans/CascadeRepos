@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Provides methods to register and configure cascade repositories.
@@ -20,7 +20,7 @@ public static class CascadeRepositoryRegistrar
     ///     repository types in the service collection.
     ///     Example usage:
     ///     <code>
-    /// // To set up Cascade
+    /// // To set up CascadeRepos
     /// services.ConfigureCascade(configuration);
     /// </code>
     /// </remarks>

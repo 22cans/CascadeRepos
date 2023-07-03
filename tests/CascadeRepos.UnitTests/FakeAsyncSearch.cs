@@ -1,6 +1,6 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 
-namespace Cascade.UnitTests;
+namespace CascadeRepos.UnitTests;
 
 public class FakeAsyncSearch<T> : AsyncSearch<T>
 {

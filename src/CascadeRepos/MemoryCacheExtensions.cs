@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Provides extension methods for the <see cref="IMemoryCache" /> interface.

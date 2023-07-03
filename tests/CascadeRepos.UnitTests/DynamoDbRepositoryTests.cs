@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace Cascade.UnitTests;
+namespace CascadeRepos.UnitTests;
 
 public class DynamoDbRepositoryTests
 {

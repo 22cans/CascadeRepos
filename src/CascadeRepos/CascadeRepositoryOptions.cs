@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Represents the options for the <see cref="CascadeRepository{T, K}" /> class.

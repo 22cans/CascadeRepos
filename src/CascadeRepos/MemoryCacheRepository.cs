@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Represents an interface for a MemoryCache repository.
@@ -118,5 +118,5 @@ public class MemoryCacheRepositoryOptions : CascadeRepositoryOptions
     /// <summary>
     ///     The configuration path for the memory cache repository options.
     /// </summary>
-    public const string ConfigPath = "Cascade:MemoryCache";
+    public const string ConfigPath = "CascadeRepos:MemoryCache";
 }

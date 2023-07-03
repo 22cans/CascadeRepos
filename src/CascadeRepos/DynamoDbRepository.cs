@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Amazon.DynamoDBv2.DataModel;
 
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Represents an interface for a DynamoDB repository.

@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
-namespace Cascade;
+namespace CascadeRepos;
 
 /// <summary>
 ///     Represents an interface for a Redis Hash repository.
