@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cascade", "src\Cascade\Cascade.csproj", "{4DA22FB0-83F9-4970-B92F-5892C5D57A86}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CascadeRepos", "src\CascadeRepos\CascadeRepos.csproj", "{4DA22FB0-83F9-4970-B92F-5892C5D57A86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cascade.UnitTests", "tests\Cascade.UnitTests\Cascade.UnitTests.csproj", "{4C7D3132-B2F1-4525-A7FC-EFE0AB8DE406}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CascadeRepos.UnitTests", "tests\CascadeRepos.UnitTests\CascadeRepos.UnitTests.csproj", "{4C7D3132-B2F1-4525-A7FC-EFE0AB8DE406}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

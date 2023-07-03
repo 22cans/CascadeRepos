@@ -11,7 +11,6 @@
         <PackageLicenseUrl>https://github.com/22cans/Cascade/blob/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/22cans/Cascade</RepositoryUrl>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <RootNamespace>Cascade</RootNamespace>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

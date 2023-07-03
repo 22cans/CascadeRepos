@@ -27,7 +27,7 @@ public class CascadeRepositoryRegistrarTests
         var configuration = configurationBuilder.Build();
 
         // Act
-        services.ConfigureCascade(configuration);
+        services.ConfigureCascadeRepos(configuration);
 
         // Assert
         var serviceProvider = services.BuildServiceProvider();
@@ -55,10 +55,10 @@ public class CascadeRepositoryRegistrarTests
         };
         var configurationBuilder = new ConfigurationBuilder().AddInMemoryCollection(configValues!);
         var configuration = configurationBuilder.Build();
-        services.ConfigureCascade(configuration);
+        services.ConfigureCascadeRepos(configuration);
 
         // Act
-        services.AddCascade<SomeObject, int>(
+        services.AddCascadeRepos<SomeObject, int>(
             typeof(DynamoDbRepository<,>),
             typeof(MemoryCacheRepository<,>),
             typeof(RedisRepository<,>));

@@ -21,10 +21,10 @@ public static class CascadeRepositoryRegistrar
     ///     Example usage:
     ///     <code>
     /// // To set up CascadeRepos
-    /// services.ConfigureCascade(configuration);
+    /// services.ConfigureCascadeRepos(configuration);
     /// </code>
     /// </remarks>
-    public static IServiceCollection ConfigureCascade(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection ConfigureCascadeRepos(this IServiceCollection services, IConfiguration configuration)
     {
         return services
             .AddMemoryCacheRepository(configuration)
@@ -108,13 +108,13 @@ public static class CascadeRepositoryRegistrar
     ///     Example usage:
     ///     <code>
     /// // To set up a custom cascade repository for Foo class with Bar as key type
-    /// services.AddCascade&lt;Foo, Bar&gt;(
+    /// services.AddCascadeRepos&lt;Foo, Bar&gt;(
     ///     typeof(MemoryCacheRepository&lt;,&gt;),
     ///     typeof(RedisRepository&lt;,&gt;),
     ///     typeof(DynamoDBRepository&lt;,&gt;));
     /// </code>
     /// </remarks>
-    public static IServiceCollection AddCascade<T, K>(this IServiceCollection services, params Type[] repoTypes)
+    public static IServiceCollection AddCascadeRepos<T, K>(this IServiceCollection services, params Type[] repoTypes)
     {
         return services
             .AddTransient(serviceProvider =>
