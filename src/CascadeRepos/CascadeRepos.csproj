@@ -4,21 +4,21 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Title>Cascade</Title>
+        <Title>CascadeRepos</Title>
         <Authors>22cans</Authors>
-        <Description>The Cascade Repository is a flexible and extensible repository pattern implementation that allows cascading operations across multiple repositories in a chain. It provides a convenient way to work with layered data access, caching, and synchronization strategies.</Description>
-        <PackageProjectUrl>https://github.com/22cans/Cascade</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/22cans/Cascade/blob/main/LICENSE</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/22cans/Cascade</RepositoryUrl>
+        <Description>CascadeRepos is a flexible and extensible repository pattern implementation that allows cascading operations across multiple repositories in a chain. It provides a convenient way to work with layered data access, caching, and synchronization strategies.</Description>
+        <PackageProjectUrl>https://github.com/22cans/CascadeRepos</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/22cans/CascadeRepos/blob/main/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/22cans/CascadeRepos</RepositoryUrl>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <DocumentationFile>bin\Debug\Cascade.xml</DocumentationFile>
+        <DocumentationFile>bin\Debug\CascadeRepos.xml</DocumentationFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <DocumentationFile>bin\Release\Cascade.xml</DocumentationFile>
+        <DocumentationFile>bin\Release\CascadeRepos.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
