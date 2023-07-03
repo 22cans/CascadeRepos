@@ -77,4 +77,4 @@ jobs:
     - name: Nuget Push
       if: github.event_name == 'release'
       run: |
-        dotnet nuget push Cascade.${{ env.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        dotnet nuget push CascadeRepos.${{ env.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
