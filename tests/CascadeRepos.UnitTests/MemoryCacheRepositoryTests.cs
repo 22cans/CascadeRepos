@@ -1,3 +1,4 @@
+using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -20,7 +21,9 @@ public class MemoryCacheRepositoryTests
         };
         memoryCache.Set(key, value);
 
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         // Act
@@ -37,7 +40,9 @@ public class MemoryCacheRepositoryTests
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         var cacheKey = "nonExistentKey";
 
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         // Act
@@ -63,7 +68,9 @@ public class MemoryCacheRepositoryTests
             .Setup(m => m.CreateEntry(It.IsAny<object>()))
             .Returns(Mock.Of<ICacheEntry>());
 
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         // Act
@@ -81,7 +88,9 @@ public class MemoryCacheRepositoryTests
         var key = "cacheKey";
         memoryCacheMock
             .Setup(m => m.Remove(It.IsAny<object>()));
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         // Act
@@ -102,7 +111,9 @@ public class MemoryCacheRepositoryTests
             Name = "Some Name"
         };
         memoryCache.Set($"{nameof(SomeObject)}_List", new List<SomeObject> { value });
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         // Act
@@ -118,7 +129,9 @@ public class MemoryCacheRepositoryTests
     {
         // Arrange
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         // Act
@@ -143,7 +156,7 @@ public class MemoryCacheRepositoryTests
         {
             { key, value }
         };
-        var genericRepository = new GenericRepository<SomeObject, string>()
+        var genericRepository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareGetAll(_ => Task.FromResult((IList<SomeObject>)storage.Values.ToList()))
             .PrepareSetAll((values, _) =>
             {
@@ -155,7 +168,9 @@ public class MemoryCacheRepositoryTests
             });
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
         memoryCacheRepo
             .AdaptObjectToKey(x => x.Id)
@@ -182,7 +197,9 @@ public class MemoryCacheRepositoryTests
         };
         const string key = "TESTING_KEY";
         memoryCache.Set(key, new List<SomeObject> { value });
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         repository.AdaptGetSetAllKey(key);
@@ -209,7 +226,7 @@ public class MemoryCacheRepositoryTests
         {
             { key, value }
         };
-        var genericRepository = new GenericRepository<SomeObject, string>()
+        var genericRepository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareGet((k, _) => Task.FromResult(storage[k])!)
             .PrepareSet((k, item, _) =>
             {
@@ -218,7 +235,9 @@ public class MemoryCacheRepositoryTests
             });
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
         memoryCacheRepo
             .AdaptObjectToKey(x => x.Id)
@@ -250,7 +269,9 @@ public class MemoryCacheRepositoryTests
             Name = "Some Name"
         };
         memoryCache.Set($"{nameof(SomeObject)}:ListId", new List<SomeObject> { value });
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         // Act
@@ -267,7 +288,9 @@ public class MemoryCacheRepositoryTests
         // Arrange
         const string listId = "ListId";
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var repository = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         // Act

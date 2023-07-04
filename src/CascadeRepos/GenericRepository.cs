@@ -1,3 +1,5 @@
+using CascadeRepos.Extensions;
+
 namespace CascadeRepos;
 
 /// <summary>
@@ -66,7 +68,8 @@ public class GenericRepository<T, K> : CascadeRepository<T, K>, IGenericReposito
     /// <summary>
     ///     Initializes a new instance of the <see cref="GenericRepository{T, K}" /> class.
     /// </summary>
-    public GenericRepository() : base(null)
+    /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
+    public GenericRepository(IDateTimeProvider dateTimeProvider) : base(dateTimeProvider, null)
     {
     }
 

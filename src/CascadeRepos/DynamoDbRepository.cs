@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Amazon.DynamoDBv2.DataModel;
+using CascadeRepos.Extensions;
 
 namespace CascadeRepos;
 
@@ -47,8 +48,9 @@ public class DynamoDbRepository<T, K> : CascadeRepository<T, K>, IDynamoDbReposi
     /// <summary>
     ///     Initializes a new instance of the <see cref="DynamoDbRepository{T,K}" /> class.
     /// </summary>
+    /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
     /// <param name="dbContext">The DynamoDB context used to interact with the database.</param>
-    public DynamoDbRepository(IDynamoDBContext dbContext) : base(null)
+    public DynamoDbRepository(IDateTimeProvider dateTimeProvider, IDynamoDBContext dbContext) : base(dateTimeProvider, null)
     {
         _dbContext = dbContext;
     }

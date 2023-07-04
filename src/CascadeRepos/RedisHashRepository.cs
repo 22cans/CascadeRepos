@@ -1,3 +1,4 @@
+using CascadeRepos.Extensions;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
@@ -38,8 +39,10 @@ public class RedisHashRepository<T, K> : CascadeRepository<T, K>, IRedisHashRepo
     /// <summary>
     ///     Initializes a new instance of the <see cref="RedisHashRepository{T, K}" /> class.
     /// </summary>
+    /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
     /// <param name="connectionMultiplexer">The Redis connection multiplexer.</param>
-    public RedisHashRepository(IConnectionMultiplexer connectionMultiplexer) : base(null)
+    public RedisHashRepository(IDateTimeProvider dateTimeProvider, IConnectionMultiplexer connectionMultiplexer) :
+        base(dateTimeProvider, null)
     {
         _database = connectionMultiplexer.GetDatabase();
     }
@@ -102,7 +105,8 @@ public class RedisHashRepository<T, K> : CascadeRepository<T, K>, IRedisHashRepo
     }
 
     /// <inheritdoc />
-    protected override async Task CoreSetList<L>(L listId, IList<T> items, CancellationToken cancellationToken = default)
+    protected override async Task CoreSetList<L>(L listId, IList<T> items,
+        CancellationToken cancellationToken = default)
     {
         var key = GetListKey(listId);
         foreach (var item in items)

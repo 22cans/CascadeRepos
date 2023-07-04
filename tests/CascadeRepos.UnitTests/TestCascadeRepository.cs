@@ -1,9 +1,12 @@
-﻿namespace CascadeRepos.UnitTests;
+﻿using CascadeRepos.Extensions;
+using Moq;
+
+namespace CascadeRepos.UnitTests;
 
 internal class TestCascadeRepository<T, K> : CascadeRepository<T, K>
 {
     public TestCascadeRepository(TimeSpan? timeToLive = null, DateTimeOffset? expirationTime = null)
-        : base(null)
+        : base(new DefaultDateTimeProvider(), null)
     {
         _timeToLive = timeToLive;
         _expirationTime = expirationTime;

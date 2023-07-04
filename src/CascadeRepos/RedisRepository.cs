@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using CascadeRepos.Extensions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using StackExchange.Redis;
@@ -34,10 +35,11 @@ public class RedisRepository<T, K> : CascadeRepository<T, K>, IRedisRepository<T
     ///     Initializes a new instance of the <see cref="RedisRepository{T, K}" /> class
     ///     using the specified <see cref="IConnectionMultiplexer" /> and <see cref="RedisRepositoryOptions" />.
     /// </summary>
+    /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
     /// <param name="connectionMultiplexer">The Redis connection multiplexer instance.</param>
     /// <param name="options">The options specifying the TTL for the cache items.</param>
-    public RedisRepository(IConnectionMultiplexer connectionMultiplexer, IOptions<RedisRepositoryOptions>? options)
-        : base(options?.Value)
+    public RedisRepository(IDateTimeProvider dateTimeProvider, IConnectionMultiplexer connectionMultiplexer,
+        IOptions<RedisRepositoryOptions>? options) : base(dateTimeProvider, options?.Value)
     {
         _database = connectionMultiplexer.GetDatabase();
     }
@@ -55,7 +57,7 @@ public class RedisRepository<T, K> : CascadeRepository<T, K>, IRedisRepository<T
     {
         var value = await _database.StringGetAsync(GetSetAllKey);
 
-        return value.IsNull ? Array.Empty<T>()  : JsonConvert.DeserializeObject<IList<T>>(value) ?? Array.Empty<T>() ;
+        return value.IsNull ? Array.Empty<T>() : JsonConvert.DeserializeObject<IList<T>>(value) ?? Array.Empty<T>();
     }
 
     /// <inheritdoc />
