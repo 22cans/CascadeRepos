@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -33,10 +34,11 @@ public class MemoryCacheRepository<T, K> : CascadeRepository<T, K>, IMemoryCache
     ///     Initializes a new instance of the <see cref="MemoryCacheRepository{T, K}" /> class
     ///     using the specified <see cref="IMemoryCache" /> and <see cref="MemoryCacheRepositoryOptions" />.
     /// </summary>
+    /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
     /// <param name="memoryCache">The memory cache instance to be used.</param>
     /// <param name="options">The options specifying the TTL for the cache items.</param>
-    public MemoryCacheRepository(IMemoryCache memoryCache, IOptions<MemoryCacheRepositoryOptions>? options)
-        : base(options?.Value)
+    public MemoryCacheRepository(IDateTimeProvider dateTimeProvider, IMemoryCache memoryCache,
+        IOptions<MemoryCacheRepositoryOptions>? options) : base(dateTimeProvider, options?.Value)
     {
         _memoryCache = memoryCache;
     }
@@ -50,13 +52,13 @@ public class MemoryCacheRepository<T, K> : CascadeRepository<T, K>, IMemoryCache
     /// <inheritdoc />
     protected override async Task<IList<T>> CoreGetAll(CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(_memoryCache.Get<IList<T>>(GetSetAllKey) ?? Array.Empty<T>() );
+        return await Task.FromResult(_memoryCache.Get<IList<T>>(GetSetAllKey) ?? Array.Empty<T>());
     }
 
     /// <inheritdoc />
     protected override async Task<IList<T>> CoreGetList<L>(L listId, CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(_memoryCache.Get<IList<T>>(GetListKey(listId)) ?? Array.Empty<T>() );
+        return await Task.FromResult(_memoryCache.Get<IList<T>>(GetListKey(listId)) ?? Array.Empty<T>());
     }
 
     /// <inheritdoc />

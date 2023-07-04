@@ -1,3 +1,5 @@
+using CascadeRepos.Extensions;
+
 namespace CascadeRepos;
 
 /// <summary>
@@ -10,7 +12,12 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     private ICascadeRepository<T, K>? _nextRepository;
     private bool _skipReading;
     private bool _skipWriting;
-
+    
+    /// <summary>
+    /// The provider for retrieving the current date and time in UTC.
+    /// </summary>
+    protected readonly IDateTimeProvider _dateTimeProvider;
+    
     /// <summary>
     ///     The absolute expiration time for the items stored in the repository.
     /// </summary>
@@ -54,9 +61,11 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     /// <summary>
     ///     Initializes a new instance of the <see cref="CascadeRepository{T, K}" /> class.
     /// </summary>
-    /// <param name="options"></param>
-    protected CascadeRepository(CascadeRepositoryOptions? options)
+    /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
+    /// <param name="options">The optional configuration options for the Cascade Repository.</param>
+    protected CascadeRepository(IDateTimeProvider dateTimeProvider, CascadeRepositoryOptions? options)
     {
+        _dateTimeProvider = dateTimeProvider;
         _timeToLive = options?.TimeToLiveInSeconds is not null
             ? TimeSpan.FromSeconds(options.TimeToLiveInSeconds.Value)
             : null;
@@ -324,7 +333,7 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     protected internal DateTimeOffset? CalculateExpirationTime()
     {
         DateTimeOffset? timeToLiveExpiration = _timeToLive != null
-            ? DateTimeOffset.UtcNow.Add(_timeToLive.Value)
+            ? _dateTimeProvider.GetUtcNow().Add(_timeToLive.Value)
             : null;
 
         if (_expirationTime != null && (timeToLiveExpiration == null || timeToLiveExpiration > _expirationTime))

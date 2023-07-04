@@ -9,15 +9,9 @@
           <CodeCoverage>
             <ModulePaths>
               <Include>
-                <ModulePath>Cascade.dll</ModulePath>
+                <ModulePath>CascadeRepos.dll</ModulePath>
               </Include>
             </ModulePaths>
-            <!-- <Sources>
-              <Exclude>
-                <Source>.*/Contracts/.*</Source>
-                <Source>.*\\Contracts\\.*</Source>
-              </Exclude>
-            </Sources> -->
           </CodeCoverage>
         </Configuration>
       </DataCollector>

@@ -1,3 +1,4 @@
+using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -21,7 +22,8 @@ public class RedisHashRepositoryTests
             .Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(_databaseMock.Object);
 
-        _repository = new RedisHashRepository<SomeObject, string>(_connectionMultiplexerMock.Object);
+        _repository = new RedisHashRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>(),
+            _connectionMultiplexerMock.Object);
     }
 
     [Fact]
@@ -149,7 +151,9 @@ public class RedisHashRepositoryTests
         };
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
         await memoryCacheRepo.SetAll(new List<SomeObject> { value });
 
@@ -225,7 +229,9 @@ public class RedisHashRepositoryTests
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         memoryCache.Set($"{nameof(SomeObject)}:{listId}", new List<SomeObject> { value });
 
-        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         _databaseMock
@@ -259,7 +265,9 @@ public class RedisHashRepositoryTests
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         memoryCache.Set($"{nameof(SomeObject)}:{listId}", new List<SomeObject> { value });
 
-        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         _databaseMock

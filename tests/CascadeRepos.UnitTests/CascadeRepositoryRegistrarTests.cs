@@ -1,4 +1,5 @@
 using Amazon.DynamoDBv2.DataModel;
+using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ public class CascadeRepositoryRegistrarTests
         services.AddTransient(_ => Mock.Of<IMemoryCache>());
         services.AddTransient(_ => Mock.Of<IConnectionMultiplexer>());
         services.AddTransient(_ => Mock.Of<IDynamoDBContext>());
+        services.AddTransient(_ => Mock.Of<IDateTimeProvider>());
         var configValues = new Dictionary<string, string>
         {
             ["CascadeRepos:MemoryCache:TimeToLiveInSeconds"] = "60",
@@ -48,6 +50,7 @@ public class CascadeRepositoryRegistrarTests
         services.AddTransient(_ => Mock.Of<IMemoryCache>());
         services.AddTransient(_ => Mock.Of<IConnectionMultiplexer>());
         services.AddTransient(_ => Mock.Of<IDynamoDBContext>());
+        services.AddTransient(_ => Mock.Of<IDateTimeProvider>());
         var configValues = new Dictionary<string, string>
         {
             ["CascadeRepos:MemoryCache:TimeToLiveInSeconds"] = "60",

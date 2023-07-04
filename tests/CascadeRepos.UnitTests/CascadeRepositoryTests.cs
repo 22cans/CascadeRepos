@@ -1,4 +1,5 @@
 using Amazon.DynamoDBv2.DataModel;
+using CascadeRepos.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -22,14 +23,17 @@ public class CascadeRepositoryTests
     public CascadeRepositoryTests()
     {
         _memoryCacheRepository1 = new MemoryCacheRepository<string, string>(
+            new DefaultDateTimeProvider(),
             new MemoryCache(new MemoryCacheOptions()),
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         _memoryCacheRepository2 = new MemoryCacheRepository<string, string>(
+            new DefaultDateTimeProvider(),
             new MemoryCache(new MemoryCacheOptions()),
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
 
         _redisRepository1 = new RedisRepository<string, string>(
+            new DefaultDateTimeProvider(),
             Mock.Of<IConnectionMultiplexer>(),
             Options.Create(new RedisRepositoryOptions { TimeToLiveInSeconds = 60 }));
     }
@@ -153,9 +157,13 @@ public class CascadeRepositoryTests
             .Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(databaseMock.Object);
         var memoryCacheMock = new Mock<IMemoryCache>();
-        var repo1 = new MemoryCacheRepository<string, string>(memoryCacheMock.Object,
+        var repo1 = new MemoryCacheRepository<string, string>(
+            new DefaultDateTimeProvider(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1 }));
-        var repo2 = new RedisRepository<string, string>(connectionMultiplexerMock.Object,
+        var repo2 = new RedisRepository<string, string>(
+            new DefaultDateTimeProvider(),
+            connectionMultiplexerMock.Object,
             Options.Create(new RedisRepositoryOptions { TimeToLiveInSeconds = 300 }));
         repo1.SetNext(repo2);
 
@@ -186,9 +194,13 @@ public class CascadeRepositoryTests
             .Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(databaseMock.Object);
         var memoryCacheMock = new Mock<IMemoryCache>();
-        var repo1 = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repo1 = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1 }));
-        var repo2 = new RedisRepository<SomeObject, string>(connectionMultiplexerMock.Object,
+        var repo2 = new RedisRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            connectionMultiplexerMock.Object,
             Options.Create(new RedisRepositoryOptions { TimeToLiveInSeconds = 300 }));
         repo1.SetNext(repo2);
         repo1.SkipWrite<IMemoryCacheRepository>();
@@ -219,9 +231,13 @@ public class CascadeRepositoryTests
         memoryCacheMock
             .Setup(x => x.CreateEntry(It.IsAny<object>()))
             .Returns(Mock.Of<ICacheEntry>());
-        var repo1 = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repo1 = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1 }));
-        var repo2 = new DynamoDbRepository<SomeObject, string>(dynamoDbContextMock.Object);
+        var repo2 = new DynamoDbRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            dynamoDbContextMock.Object);
         repo1.SetNext(repo2);
 
         // Act
@@ -252,9 +268,13 @@ public class CascadeRepositoryTests
         memoryCacheMock
             .Setup(x => x.CreateEntry(It.IsAny<object>()))
             .Returns(Mock.Of<ICacheEntry>());
-        var repo1 = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repo1 = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1 }));
-        var repo2 = new DynamoDbRepository<SomeObject, string>(dynamoDbContextMock.Object);
+        var repo2 = new DynamoDbRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            dynamoDbContextMock.Object);
         repo1.SetNext(repo2);
 
         // Act
@@ -280,9 +300,13 @@ public class CascadeRepositoryTests
         memoryCacheMock
             .Setup(x => x.CreateEntry(It.IsAny<object>()))
             .Returns(Mock.Of<ICacheEntry>());
-        var repo1 = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repo1 = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1 }));
-        var repo2 = new DynamoDbRepository<SomeObject, string>(dynamoDbContextMock.Object);
+        var repo2 = new DynamoDbRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            dynamoDbContextMock.Object);
         repo1.SetNext(repo2);
 
         // Act
@@ -303,9 +327,13 @@ public class CascadeRepositoryTests
         memoryCacheMock
             .Setup(x => x.CreateEntry(It.IsAny<object>()))
             .Returns(Mock.Of<ICacheEntry>());
-        var repo1 = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repo1 = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1 }));
-        var repo2 = new DynamoDbRepository<SomeObject, string>(dynamoDbContextMock.Object);
+        var repo2 = new DynamoDbRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            dynamoDbContextMock.Object);
         repo1.SetNext(repo2);
 
         // Act
@@ -329,9 +357,13 @@ public class CascadeRepositoryTests
         memoryCacheMock
             .Setup(x => x.CreateEntry(It.IsAny<object>()))
             .Returns(Mock.Of<ICacheEntry>());
-        var repo1 = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repo1 = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1 }));
-        var repo2 = new DynamoDbRepository<SomeObject, string>(dynamoDbContextMock.Object);
+        var repo2 = new DynamoDbRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            dynamoDbContextMock.Object);
         repo1.SetNext(repo2);
 
         // Act
@@ -351,7 +383,9 @@ public class CascadeRepositoryTests
         // Arrange
         var key = "cacheKey";
         var dynamoDbContextMock = new Mock<IDynamoDBContext>();
-        var repo = new DynamoDbRepository<SomeObject, string>(dynamoDbContextMock.Object);
+        var repo = new DynamoDbRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            dynamoDbContextMock.Object);
 
         // Act
         await repo.Refresh(key);
@@ -373,9 +407,13 @@ public class CascadeRepositoryTests
         memoryCacheMock
             .Setup(x => x.CreateEntry(It.IsAny<object>()))
             .Returns(Mock.Of<ICacheEntry>());
-        var repo1 = new MemoryCacheRepository<SomeObject, string>(memoryCacheMock.Object,
+        var repo1 = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCacheMock.Object,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1 }));
-        var repo2 = new DynamoDbRepository<SomeObject, string>(dynamoDbContextMock.Object);
+        var repo2 = new DynamoDbRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            dynamoDbContextMock.Object);
         repo1.SetNext(repo2);
 
         // Act

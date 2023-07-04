@@ -1,5 +1,7 @@
+using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 
 namespace CascadeRepos.UnitTests;
@@ -22,7 +24,7 @@ public class GenericRepositoryTests
             { key, value }
         };
 
-        var repository = new GenericRepository<SomeObject, string>()
+        var repository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareGet((k, _) => Task.FromResult(storage.TryGetValue(k, out var result) ? result : null));
 
         // Act
@@ -40,7 +42,7 @@ public class GenericRepositoryTests
 
         var storage = new Dictionary<string, SomeObject>();
 
-        var repository = new GenericRepository<SomeObject, string>()
+        var repository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareGet((k, _) => Task.FromResult(storage.TryGetValue(k, out var result) ? result : null));
 
         // Act
@@ -63,7 +65,7 @@ public class GenericRepositoryTests
 
         var storage = new Dictionary<string, SomeObject>();
 
-        var repository = new GenericRepository<SomeObject, string>()
+        var repository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareSet((k, v, _) =>
             {
                 storage[k] = v;
@@ -91,7 +93,7 @@ public class GenericRepositoryTests
 
         var storage = new Dictionary<string, SomeObject> { { key, value } };
 
-        var repository = new GenericRepository<SomeObject, string>()
+        var repository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareDelete((k, _) =>
             {
                 storage.Remove(key);
@@ -121,7 +123,7 @@ public class GenericRepositoryTests
             { key, value }
         };
 
-        var repository = new GenericRepository<SomeObject, string>()
+        var repository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareGetAll(_ => Task.FromResult((IList<SomeObject>)storage.Values.ToList()));
 
         // Act
@@ -138,7 +140,7 @@ public class GenericRepositoryTests
         // Arrange
         var storage = new Dictionary<string, SomeObject>();
 
-        var repository = new GenericRepository<SomeObject, string>()
+        var repository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareGetAll(_ => Task.FromResult((IList<SomeObject>)storage.Values.ToList()));
 
         // Act
@@ -160,12 +162,14 @@ public class GenericRepositoryTests
         };
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(memoryCache,
+        var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            new DefaultDateTimeProvider(),
+            memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
         await memoryCacheRepo.SetAll(new List<SomeObject> { value });
 
         var storage = new Dictionary<string, SomeObject>();
-        var repository = new GenericRepository<SomeObject, string>()
+        var repository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>())
             .PrepareGetAll(_ => Task.FromResult((IList<SomeObject>)storage.Values.ToList()))
             .PrepareSetAll((values, _) =>
             {
@@ -194,7 +198,7 @@ public class GenericRepositoryTests
             Id = key,
             Name = "Some Name"
         };
-        var repository = new GenericRepository<SomeObject, string>();
+        var repository = new GenericRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>());
 
         await Assert.ThrowsAsync<NotImplementedException>(() => repository.Get(key));
         await Assert.ThrowsAsync<NotImplementedException>(() => repository.GetAll());
