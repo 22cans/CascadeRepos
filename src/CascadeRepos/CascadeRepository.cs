@@ -9,15 +9,13 @@ namespace CascadeRepos;
 /// <typeparam name="TK">The type of the keys used to access the items.</typeparam>
 public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
 {
+    private readonly IDateTimeProvider _dateTimeProvider;
     private ICascadeRepository<T, TK>? _nextRepository;
     private bool _skipReading;
     private bool _skipWriting;
-    
-    /// <summary>
-    /// The provider for retrieving the current date and time in UTC.
-    /// </summary>
-    private readonly IDateTimeProvider _dateTimeProvider;
-    
+    private string _listPrefix = typeof(T).Name;
+    private string? _listKey;
+
     /// <summary>
     ///     The absolute expiration time for the items stored in the repository.
     /// </summary>
@@ -27,6 +25,23 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     ///     The time to live (TTL) for the items stored in the repository.
     /// </summary>
     protected TimeSpan? TimeToLive;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="CascadeRepository{T, K}" /> class.
+    /// </summary>
+    /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
+    /// <param name="options">The optional configuration options for the Cascade Repository.</param>
+    protected CascadeRepository(IDateTimeProvider dateTimeProvider, CascadeRepositoryOptions? options)
+    {
+        _dateTimeProvider = dateTimeProvider;
+        TimeToLive = options?.TimeToLiveInSeconds is not null
+            ? TimeSpan.FromSeconds(options.TimeToLiveInSeconds.Value)
+            : null;
+
+        var timeToLiveInSecondsByEntity = options?.TimeToLiveInSecondsByEntity;
+        if (timeToLiveInSecondsByEntity?.TryGetValue(typeof(T).Name, out var ttl) == true)
+            TimeToLive = ttl is not null ? TimeSpan.FromSeconds((int)ttl) : null;
+    }
 
     /// <summary>
     ///     Gets or sets the key adapter function used to adapt keys before accessing the repository.
@@ -42,33 +57,6 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     ///     Gets or sets the key used in GetAll/SetAll methods when accessing the repository.
     /// </summary>
     protected string GetSetAllKey { get; private set; } = $"{typeof(T).Name}_List";
-
-    /// <summary>
-    ///     Gets or sets a key prefix used in GetList method when accessing the repository. Only used if the ListKey is not defined.
-    /// </summary>
-    protected string ListPrefix { get; private set; } = typeof(T).Name;
-
-    /// <summary>
-    ///     Gets or sets a definitive key used in GetList method when accessing the repository.
-    /// </summary>
-    protected string? ListKey { get; private set; }
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="CascadeRepository{T, K}" /> class.
-    /// </summary>
-    /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
-    /// <param name="options">The optional configuration options for the Cascade Repository.</param>
-    protected CascadeRepository(IDateTimeProvider dateTimeProvider, CascadeRepositoryOptions? options)
-    {
-        _dateTimeProvider = dateTimeProvider;
-        TimeToLive = options?.TimeToLiveInSeconds is not null
-            ? TimeSpan.FromSeconds(options.TimeToLiveInSeconds.Value)
-            : null;
-
-        IDictionary<string, int?>? timeToLiveInSecondsByEntity = options?.TimeToLiveInSecondsByEntity;
-        if (timeToLiveInSecondsByEntity?.TryGetValue(typeof(T).Name, out var ttl) == true)
-            TimeToLive = ttl is not null ? TimeSpan.FromSeconds((int)ttl) : null;
-    }
 
     /// <inheritdoc />
     public ICascadeRepository<T, TK>? FindRepository(Type repositoryType, uint index = 0)
@@ -302,24 +290,27 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     /// <inheritdoc />
     public virtual ICascadeRepository<T, TK> AdaptListPrefix(string prefix)
     {
-        ListPrefix = prefix;
+        _listPrefix = prefix;
         return this;
     }
 
     /// <inheritdoc />
     public virtual ICascadeRepository<T, TK> AdaptListKey(string key)
     {
-        ListKey = key;
+        _listKey = key;
         return this;
     }
 
     /// <summary>
-    /// Gets the final key to be used for Lists.
+    ///     Gets the final key to be used for Lists.
     /// </summary>
     /// <param name="listId"></param>
     /// <typeparam name="TL"></typeparam>
     /// <returns>The key to be used for Lists</returns>
-    protected string GetListKey<TL>(TL listId) => ListKey ?? $"{ListPrefix}:{listId}";
+    protected string GetListKey<TL>(TL listId)
+    {
+        return _listKey ?? $"{_listPrefix}:{listId}";
+    }
 
     /// <summary>
     ///     Calculates the expiration time for a cache item based on the configured time-to-live and absolute expiration time.
