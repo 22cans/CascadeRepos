@@ -28,8 +28,8 @@ public interface IMemoryCacheRepository<T, TK> : ICascadeRepository<T, TK>, IMem
 /// <typeparam name="TK">The type of the cache key.</typeparam>
 public class MemoryCacheRepository<T, TK> : CascadeRepository<T, TK>, IMemoryCacheRepository<T, TK>
 {
-    private readonly IMemoryCache _memoryCache;
     private readonly bool _enableSlidingExpiration;
+    private readonly IMemoryCache _memoryCache;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="MemoryCacheRepository{T, K}" /> class
@@ -42,7 +42,7 @@ public class MemoryCacheRepository<T, TK> : CascadeRepository<T, TK>, IMemoryCac
         IOptions<MemoryCacheRepositoryOptions>? options) : base(dateTimeProvider, options?.Value)
     {
         _memoryCache = memoryCache;
-        _enableSlidingExpiration = options?.Value != null && options.Value.SlidingExpiration;
+        _enableSlidingExpiration = options?.Value is { SlidingExpiration: true };
     }
 
     /// <inheritdoc />
@@ -130,11 +130,11 @@ public class MemoryCacheRepositoryOptions : CascadeRepositoryOptions
     ///     The configuration path for the memory cache repository options.
     /// </summary>
     public const string ConfigPath = "CascadeRepos:MemoryCache";
-    
+
     /// <summary>
     ///     Gets or sets a value indicating whether sliding expiration is enabled.
     ///     If set to true, items in the cache will have sliding expiration based on the configured time-to-live.
     ///     If set to false, items will have absolute expiration.
     /// </summary>
-    public bool SlidingExpiration { get; set; } = false;
+    public bool SlidingExpiration { get; init; } = false;
 }

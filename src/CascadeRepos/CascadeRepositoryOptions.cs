@@ -11,10 +11,10 @@ public class CascadeRepositoryOptions
     /// <summary>
     ///     The time to live (TTL) for the cached items, in seconds.
     /// </summary>
-    public int? TimeToLiveInSeconds { get; set; }
+    public int? TimeToLiveInSeconds { get; init; }
 
     /// <summary>
     ///     The time to live (TTL) per entity, for the cached items, in seconds.
     /// </summary>
-    public IDictionary<string, int?>? TimeToLiveInSecondsByEntity { get; set; }
+    public IDictionary<string, int?>? TimeToLiveInSecondsByEntity { get; init; }
 }

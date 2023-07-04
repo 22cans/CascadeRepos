@@ -6,12 +6,6 @@ namespace CascadeRepos.Extensions;
 public interface IDateTimeProvider
 {
     /// <summary>
-    ///     Gets the current date and time in UTC as a tick count.
-    /// </summary>
-    /// <returns>The current date and time in UTC as a tick count.</returns>
-    long GetUtcNowTicks();
-
-    /// <summary>
     ///     Gets the current date and time in UTC.
     /// </summary>
     /// <returns>The current date and time in UTC.</returns>
@@ -23,12 +17,6 @@ public interface IDateTimeProvider
 /// </summary>
 public class DefaultDateTimeProvider : IDateTimeProvider
 {
-    /// <inheritdoc />
-    public long GetUtcNowTicks()
-    {
-        return GetUtcNow().Ticks;
-    }
-
     /// <inheritdoc />
     public DateTime GetUtcNow()
     {

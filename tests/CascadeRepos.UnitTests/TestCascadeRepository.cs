@@ -1,5 +1,4 @@
 ﻿using CascadeRepos.Extensions;
-using Moq;
 
 namespace CascadeRepos.UnitTests;
 
@@ -37,7 +36,8 @@ internal class TestCascadeRepository<T, TK> : CascadeRepository<T, TK>
         throw new NotImplementedException();
     }
 
-    protected override Task<IList<T>> CoreSetList<TL>(TL listId, IList<T> items, CancellationToken cancellationToken = default)
+    protected override Task<IList<T>> CoreSetList<TL>(TL listId, IList<T> items,
+        CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
