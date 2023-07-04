@@ -25,7 +25,12 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     ///     The time to live (TTL) for the items stored in the repository.
     /// </summary>
     protected TimeSpan? TimeToLive;
-
+    
+    /// <summary>
+    ///     The type of expiration for the entity in the repository.
+    /// </summary>
+    protected readonly ExpirationType ExpirationType;
+    
     /// <summary>
     ///     Initializes a new instance of the <see cref="CascadeRepository{T, K}" /> class.
     /// </summary>
@@ -34,13 +39,18 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     protected CascadeRepository(IDateTimeProvider dateTimeProvider, CascadeRepositoryOptions? options)
     {
         _dateTimeProvider = dateTimeProvider;
+        ExpirationType = options?.DefaultExpirationType ?? ExpirationType.Absolute;
         TimeToLive = options?.TimeToLiveInSeconds is not null
             ? TimeSpan.FromSeconds(options.TimeToLiveInSeconds.Value)
             : null;
 
         var timeToLiveInSecondsByEntity = options?.TimeToLiveInSecondsByEntity;
-        if (timeToLiveInSecondsByEntity?.TryGetValue(typeof(T).Name, out var ttl) == true)
-            TimeToLive = ttl is not null ? TimeSpan.FromSeconds((int)ttl) : null;
+        if (timeToLiveInSecondsByEntity?.TryGetValue(typeof(T).Name, out var entityOptions) != true) return;
+        
+        ExpirationType = entityOptions?.ExpirationType ?? ExpirationType.Absolute; 
+        TimeToLive = entityOptions?.TimeToLiveInSeconds != null
+            ? TimeSpan.FromSeconds((int)entityOptions?.TimeToLiveInSeconds!)
+            : null;
     }
 
     /// <summary>
