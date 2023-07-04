@@ -1,5 +1,14 @@
 # CascadeRepos
 ​
+[![NuGet version (CascadeRepos)](https://img.shields.io/nuget/v/CascadeRepos.svg?style=flat-square)](https://www.nuget.org/packages/CascadeRepos/)
+[![CI](https://github.com/22cans/CascadeRepos/actions/workflows/push.yml/badge.svg?event=release)](https://github.com/22cans/CascadeRepos/actions/workflows/push.yml?query=event%3Arelease)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/CascadeRepos.svg)](https://www.nuget.org/packages/CascadeRepos/)
+![GitHub contributors](https://img.shields.io/github/contributors/22cans/CascadeRepos)
+![GitHub last commit (by committer)](https://img.shields.io/github/last-commit/22cans/CascadeRepos)
+![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/w/22cans/CascadeRepos)
+![GitHub Repo stars](https://img.shields.io/github/stars/22cans/CascadeRepos)
+![GitHub forks](https://img.shields.io/github/forks/22cans/CascadeRepos)
+
 CascadeRepos is a flexible and extensible repository pattern implementation that allows cascading operations across multiple repositories in a chain. It provides a convenient way to work with layered data access, caching, and synchronization strategies.
 ​
 ## Overview​
@@ -166,3 +175,7 @@ That's it! You're now ready to use CascadeRepos in your application.
 Contributions to CascadeRepos are welcome! There are a lot of repositories that still need support. If you find any issues or have suggestions for improvement, please open an issue or submit a pull request on this repository.
 
 When contributing, please follow the existing coding style and conventions. Make sure to add tests for any new functionality or bug fixes.
+
+## Contributors
+
+![GitHub Contributors Image](https://contrib.rocks/image?repo=22cans/CascadeRepos)
