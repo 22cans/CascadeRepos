@@ -1,4 +1,5 @@
 using CascadeRepos.Extensions;
+using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -80,7 +81,6 @@ public class MemoryCacheRepositoryTests
         memoryCacheMock.Verify(c => c.CreateEntry(key), Times.Once);
     }
 
-
     [Fact]
     public async Task Set_Sets_Item_With_Sliding_Expiration_When_Enabled()
     {
@@ -96,7 +96,8 @@ public class MemoryCacheRepositoryTests
         var repository = new MemoryCacheRepository<SomeObject, string>(
             Mock.Of<IDateTimeProvider>(),
             memoryCache,
-            Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1, SlidingExpiration = true }));
+            Options.Create(new MemoryCacheRepositoryOptions
+                { TimeToLiveInSeconds = 1, DefaultExpirationType = ExpirationType.Sliding }));
 
         // Act
         await repository.Set(key, value);
@@ -112,6 +113,43 @@ public class MemoryCacheRepositoryTests
         Assert.Null(expiredResult);
     }
 
+    [Fact]
+    public async Task Set_Sets_Item_With_Sliding_Expiration_By_Dictionary_When_Enabled()
+    {
+        // Arrange
+        var memoryCache = new MemoryCache(new MemoryCacheOptions());
+        var key = "cacheKey";
+        var value = new SomeObject
+        {
+            Id = key,
+            Name = "Some Name"
+        };
+
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
+            Options.Create(new MemoryCacheRepositoryOptions
+            {
+                TimeToLiveInSecondsByEntity =
+                    new Dictionary<string, (int? TimeToLiveInSeconds, ExpirationType? ExpirationType)?>
+                    {
+                        { nameof(SomeObject), (1, ExpirationType.Sliding) }
+                    }
+            }));
+
+        // Act
+        await repository.Set(key, value);
+        await Task.Delay(800);
+        await repository.Get(key);
+        await Task.Delay(800);
+        var slidingResult = await repository.Get(key);
+        await Task.Delay(1200);
+        var expiredResult = await repository.Get(key);
+
+        // Assert
+        Assert.Equivalent(value, slidingResult);
+        Assert.Null(expiredResult);
+    }
 
     [Fact]
     public async Task Delete_Removes_Item()
@@ -216,7 +254,6 @@ public class MemoryCacheRepositoryTests
         Assert.NotEmpty(result);
         Assert.Equal(result[0], storage[key]);
     }
-
 
     [Fact]
     public async Task GetAll_Adds_Items_Using_CoreSetAll_With_GetSetAllKey()
