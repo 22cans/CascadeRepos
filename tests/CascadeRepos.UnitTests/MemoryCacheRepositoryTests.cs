@@ -80,6 +80,39 @@ public class MemoryCacheRepositoryTests
         memoryCacheMock.Verify(c => c.CreateEntry(key), Times.Once);
     }
 
+
+    [Fact]
+    public async Task Set_Sets_Item_With_Sliding_Expiration_When_Enabled()
+    {
+        // Arrange
+        var memoryCache = new MemoryCache(new MemoryCacheOptions());
+        var key = "cacheKey";
+        var value = new SomeObject
+        {
+            Id = key,
+            Name = "Some Name"
+        };
+
+        var repository = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<IDateTimeProvider>(),
+            memoryCache,
+            Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 1, SlidingExpiration = true }));
+
+        // Act
+        await repository.Set(key, value);
+        await Task.Delay(800);
+        await repository.Get(key);
+        await Task.Delay(800);
+        var slidingResult = await repository.Get(key);
+        await Task.Delay(1200);
+        var expiredResult = await repository.Get(key);
+
+        // Assert
+        Assert.Equivalent(value, slidingResult);
+        Assert.Null(expiredResult);
+    }
+
+
     [Fact]
     public async Task Delete_Removes_Item()
     {
