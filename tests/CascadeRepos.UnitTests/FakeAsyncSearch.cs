@@ -12,7 +12,7 @@ public class FakeAsyncSearch<T> : AsyncSearch<T>
         return this;
     }
 
-    public override Task<List<T>> GetRemainingAsync(CancellationToken cancellationToken = new CancellationToken())
+    public override Task<List<T>> GetRemainingAsync(CancellationToken cancellationToken = new())
     {
         return Task.FromResult(_results ?? new List<T>());
     }

@@ -17,8 +17,8 @@ public interface IRedisRepository
 ///     Represents an interface for a Redis repository.
 /// </summary>
 /// <typeparam name="T">The type of items stored in the repository.</typeparam>
-/// <typeparam name="K">The type of keys used to access the items.</typeparam>
-public interface IRedisRepository<T, K> : ICascadeRepository<T, K>, IRedisRepository
+/// <typeparam name="TK">The type of keys used to access the items.</typeparam>
+public interface IRedisRepository<T, TK> : ICascadeRepository<T, TK>, IRedisRepository
 {
 }
 
@@ -26,8 +26,8 @@ public interface IRedisRepository<T, K> : ICascadeRepository<T, K>, IRedisReposi
 ///     Represents a repository that uses Redis as a data source.
 /// </summary>
 /// <typeparam name="T">The type of the data.</typeparam>
-/// <typeparam name="K">The type of the cache key.</typeparam>
-public class RedisRepository<T, K> : CascadeRepository<T, K>, IRedisRepository<T, K>
+/// <typeparam name="TK">The type of the cache key.</typeparam>
+public class RedisRepository<T, TK> : CascadeRepository<T, TK>, IRedisRepository<T, TK>
 {
     private readonly IDatabase _database;
 
@@ -45,7 +45,7 @@ public class RedisRepository<T, K> : CascadeRepository<T, K>, IRedisRepository<T
     }
 
     /// <inheritdoc />
-    protected override async Task<T?> CoreGet(K key, CancellationToken cancellationToken = default)
+    protected override async Task<T?> CoreGet(TK key, CancellationToken cancellationToken = default)
     {
         var value = await _database.StringGetAsync(KeyToKeyAdapter(key)?.ToString());
 
@@ -61,7 +61,7 @@ public class RedisRepository<T, K> : CascadeRepository<T, K>, IRedisRepository<T
     }
 
     /// <inheritdoc />
-    protected override async Task<IList<T>> CoreGetList<L>(L listId, CancellationToken cancellationToken = default)
+    protected override async Task<IList<T>> CoreGetList<TL>(TL listId, CancellationToken cancellationToken = default)
     {
         var key = GetListKey(listId);
         var value = await _database.StringGetAsync(key);
@@ -70,7 +70,7 @@ public class RedisRepository<T, K> : CascadeRepository<T, K>, IRedisRepository<T
     }
 
     /// <inheritdoc />
-    protected override async Task CoreSet(K key, T item, CancellationToken cancellationToken = default)
+    protected override async Task CoreSet(TK key, T item, CancellationToken cancellationToken = default)
     {
         var k = KeyToKeyAdapter(key)?.ToString();
         var expirationTime = CalculateExpirationTime();
@@ -93,7 +93,7 @@ public class RedisRepository<T, K> : CascadeRepository<T, K>, IRedisRepository<T
     }
 
     /// <inheritdoc />
-    protected override async Task CoreSetList<L>(L listId, IList<T> items,
+    protected override async Task CoreSetList<TL>(TL listId, IList<T> items,
         CancellationToken cancellationToken = default)
     {
         var expirationTime = CalculateExpirationTime();
@@ -106,7 +106,7 @@ public class RedisRepository<T, K> : CascadeRepository<T, K>, IRedisRepository<T
     }
 
     /// <inheritdoc />
-    protected override async Task CoreDelete(K key, CancellationToken cancellationToken = default)
+    protected override async Task CoreDelete(TK key, CancellationToken cancellationToken = default)
     {
         await _database.KeyDeleteAsync(key!.ToString());
     }
