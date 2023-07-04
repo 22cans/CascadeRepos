@@ -24,7 +24,8 @@ public static class CascadeRepositoryRegistrar
     /// services.ConfigureCascadeRepos(configuration);
     /// </code>
     /// </remarks>
-    public static IServiceCollection ConfigureCascadeRepos(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection ConfigureCascadeRepos(this IServiceCollection services,
+        IConfiguration configuration)
     {
         return services
             .AddMemoryCacheRepository(configuration)
@@ -83,26 +84,26 @@ public static class CascadeRepositoryRegistrar
     /// </summary>
     /// <param name="services">The service collection to configure the cascade repositories.</param>
     /// <typeparam name="T">The type interface to be registered</typeparam>
-    /// <typeparam name="C">The type concrete class to be registered</typeparam>
+    /// <typeparam name="TC">The type concrete class to be registered</typeparam>
     /// <returns>The modified service collection.</returns>
-    public static IServiceCollection ConfigureCustomType<T, C>(this IServiceCollection services)
-        where T : class where C : class, T
+    public static IServiceCollection ConfigureCustomType<T, TC>(this IServiceCollection services)
+        where T : class where TC : class, T
     {
-        return services.AddTransient<T, C>();
+        return services.AddTransient<T, TC>();
     }
 
     /// <summary>
-    ///     Adds a cascade of repositories for the specified types <typeparamref name="T" /> and <typeparamref name="K" /> to
+    ///     Adds a cascade of repositories for the specified types <typeparamref name="T" /> and <typeparamref name="TK" /> to
     ///     the service collection.
     /// </summary>
     /// <typeparam name="T">The type of the items stored in the repositories.</typeparam>
-    /// <typeparam name="K">The type of the keys used to access the items.</typeparam>
+    /// <typeparam name="TK">The type of the keys used to access the items.</typeparam>
     /// <param name="services">The service collection to add the repositories to.</param>
     /// <param name="repoTypes">An array of repository types to be included in the cascade.</param>
     /// <returns>The modified service collection.</returns>
     /// <remarks>
     ///     This method creates a cascade of repositories for the specified types <typeparamref name="T" /> and
-    ///     <typeparamref name="K" /> and adds them to the service collection.
+    ///     <typeparamref name="TK" /> and adds them to the service collection.
     ///     The repositories are instantiated based on the provided repository types <paramref name="repoTypes" /> and
     ///     connected in the order specified.
     ///     Example usage:
@@ -114,19 +115,19 @@ public static class CascadeRepositoryRegistrar
     ///     typeof(DynamoDBRepository&lt;,&gt;));
     /// </code>
     /// </remarks>
-    public static IServiceCollection AddCascadeRepos<T, K>(this IServiceCollection services, params Type[] repoTypes)
+    public static IServiceCollection AddCascadeRepos<T, TK>(this IServiceCollection services, params Type[] repoTypes)
     {
         return services
             .AddTransient(serviceProvider =>
             {
-                ICascadeRepository<T, K>? firstRepo = null, lastRepo = null;
+                ICascadeRepository<T, TK>? firstRepo = null, lastRepo = null;
 
                 foreach (var repoType in repoTypes)
                 {
                     var constructedType = repoType.IsGenericType
-                        ? repoType.MakeGenericType(typeof(T), typeof(K))
+                        ? repoType.MakeGenericType(typeof(T), typeof(TK))
                         : repoType;
-                    var repo = (ICascadeRepository<T, K>)serviceProvider.GetRequiredService(constructedType);
+                    var repo = (ICascadeRepository<T, TK>)serviceProvider.GetRequiredService(constructedType);
 
                     lastRepo?.SetNext(repo);
                     firstRepo ??= repo;

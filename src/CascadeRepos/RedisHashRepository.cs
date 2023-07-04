@@ -15,26 +15,26 @@ public interface IRedisHashRepository
 ///     Represents an interface for a Redis Hash repository.
 /// </summary>
 /// <typeparam name="T">The type of items stored in the repository.</typeparam>
-/// <typeparam name="K">The type of keys used to access the items.</typeparam>
-public interface IRedisHashRepository<T, K> : ICascadeRepository<T, K>, IRedisHashRepository
+/// <typeparam name="TK">The type of keys used to access the items.</typeparam>
+public interface IRedisHashRepository<T, TK> : ICascadeRepository<T, TK>, IRedisHashRepository
 {
     /// <summary>
     ///     Sets the Redis key adapter function used to adapt keys before accessing the Redis hash repository.
     /// </summary>
     /// <param name="redisKeyAdapter">The Redis key adapter function.</param>
     /// <returns>The modified Redis hash repository.</returns>
-    IRedisHashRepository<T, K> AdaptRedisKey(Func<K> redisKeyAdapter);
+    IRedisHashRepository<T, TK> AdaptRedisKey(Func<TK> redisKeyAdapter);
 }
 
 /// <summary>
 ///     Represents a repository implementation using Redis Hash.
 /// </summary>
 /// <typeparam name="T">The type of the items stored in the repository.</typeparam>
-/// <typeparam name="K">The type of the keys used to access the items.</typeparam>
-public class RedisHashRepository<T, K> : CascadeRepository<T, K>, IRedisHashRepository<T, K>
+/// <typeparam name="TK">The type of the keys used to access the items.</typeparam>
+public class RedisHashRepository<T, TK> : CascadeRepository<T, TK>, IRedisHashRepository<T, TK>
 {
     private readonly IDatabase _database;
-    private Func<K> _redisKeyAdapter = () => (K)(object)typeof(T).Name;
+    private Func<TK> _redisKeyAdapter = () => (TK)(object)typeof(T).Name;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="RedisHashRepository{T, K}" /> class.
@@ -51,20 +51,20 @@ public class RedisHashRepository<T, K> : CascadeRepository<T, K>, IRedisHashRepo
     /// <remarks>
     ///     The key adapter will be used as field by RedisHash. Check usage on <see cref="CoreSetAll" />.
     /// </remarks>
-    public override ICascadeRepository<T, K> AdaptObjectToKey(Func<T, K> keyAdapter)
+    public override ICascadeRepository<T, TK> AdaptObjectToKey(Func<T, TK> keyAdapter)
     {
         return base.AdaptObjectToKey(keyAdapter);
     }
 
     /// <inheritdoc />
-    public IRedisHashRepository<T, K> AdaptRedisKey(Func<K> redisKeyAdapter)
+    public IRedisHashRepository<T, TK> AdaptRedisKey(Func<TK> redisKeyAdapter)
     {
         _redisKeyAdapter = redisKeyAdapter;
         return this;
     }
 
     /// <inheritdoc />
-    protected override async Task<T?> CoreGet(K key, CancellationToken cancellationToken = default)
+    protected override async Task<T?> CoreGet(TK key, CancellationToken cancellationToken = default)
     {
         var value = await _database.HashGetAsync(_redisKeyAdapter()!.ToString(), KeyToKeyAdapter(key)?.ToString());
 
@@ -81,7 +81,7 @@ public class RedisHashRepository<T, K> : CascadeRepository<T, K>, IRedisHashRepo
     }
 
     /// <inheritdoc />
-    protected override async Task<IList<T>> CoreGetList<L>(L listId, CancellationToken cancellationToken = default)
+    protected override async Task<IList<T>> CoreGetList<TL>(TL listId, CancellationToken cancellationToken = default)
     {
         var result = await _database.HashGetAllAsync(GetListKey(listId));
         return result is null
@@ -90,7 +90,7 @@ public class RedisHashRepository<T, K> : CascadeRepository<T, K>, IRedisHashRepo
     }
 
     /// <inheritdoc />
-    protected override async Task CoreSet(K key, T item, CancellationToken cancellationToken = default)
+    protected override async Task CoreSet(TK key, T item, CancellationToken cancellationToken = default)
     {
         await _database.HashSetAsync(_redisKeyAdapter()!.ToString(), KeyToKeyAdapter(key)!.ToString(),
             JsonConvert.SerializeObject(item));
@@ -105,7 +105,7 @@ public class RedisHashRepository<T, K> : CascadeRepository<T, K>, IRedisHashRepo
     }
 
     /// <inheritdoc />
-    protected override async Task CoreSetList<L>(L listId, IList<T> items,
+    protected override async Task CoreSetList<TL>(TL listId, IList<T> items,
         CancellationToken cancellationToken = default)
     {
         var key = GetListKey(listId);
@@ -115,7 +115,7 @@ public class RedisHashRepository<T, K> : CascadeRepository<T, K>, IRedisHashRepo
     }
 
     /// <inheritdoc />
-    protected override async Task CoreDelete(K key, CancellationToken cancellationToken = default)
+    protected override async Task CoreDelete(TK key, CancellationToken cancellationToken = default)
     {
         await _database.HashDeleteAsync(_redisKeyAdapter()!.ToString(), KeyToKeyAdapter(key)!.ToString());
     }

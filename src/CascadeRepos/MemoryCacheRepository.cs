@@ -16,8 +16,8 @@ public interface IMemoryCacheRepository
 ///     Represents an interface for a MemoryCache repository.
 /// </summary>
 /// <typeparam name="T">The type of items stored in the repository.</typeparam>
-/// <typeparam name="K">The type of keys used to access the items.</typeparam>
-public interface IMemoryCacheRepository<T, K> : ICascadeRepository<T, K>, IMemoryCacheRepository
+/// <typeparam name="TK">The type of keys used to access the items.</typeparam>
+public interface IMemoryCacheRepository<T, TK> : ICascadeRepository<T, TK>, IMemoryCacheRepository
 {
 }
 
@@ -25,10 +25,11 @@ public interface IMemoryCacheRepository<T, K> : ICascadeRepository<T, K>, IMemor
 ///     Represents a repository that uses the memory cache as a data source.
 /// </summary>
 /// <typeparam name="T">The type of the data.</typeparam>
-/// <typeparam name="K">The type of the cache key.</typeparam>
-public class MemoryCacheRepository<T, K> : CascadeRepository<T, K>, IMemoryCacheRepository<T, K>
+/// <typeparam name="TK">The type of the cache key.</typeparam>
+public class MemoryCacheRepository<T, TK> : CascadeRepository<T, TK>, IMemoryCacheRepository<T, TK>
 {
     private readonly IMemoryCache _memoryCache;
+    private readonly bool _enableSlidingExpiration;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="MemoryCacheRepository{T, K}" /> class
@@ -41,10 +42,11 @@ public class MemoryCacheRepository<T, K> : CascadeRepository<T, K>, IMemoryCache
         IOptions<MemoryCacheRepositoryOptions>? options) : base(dateTimeProvider, options?.Value)
     {
         _memoryCache = memoryCache;
+        _enableSlidingExpiration = options?.Value != null && options.Value.SlidingExpiration;
     }
 
     /// <inheritdoc />
-    protected override async Task<T?> CoreGet(K key, CancellationToken cancellationToken = default)
+    protected override async Task<T?> CoreGet(TK key, CancellationToken cancellationToken = default)
     {
         return await Task.FromResult(_memoryCache.Get<T?>(KeyToKeyAdapter(key)!));
     }
@@ -56,20 +58,28 @@ public class MemoryCacheRepository<T, K> : CascadeRepository<T, K>, IMemoryCache
     }
 
     /// <inheritdoc />
-    protected override async Task<IList<T>> CoreGetList<L>(L listId, CancellationToken cancellationToken = default)
+    protected override async Task<IList<T>> CoreGetList<TL>(TL listId, CancellationToken cancellationToken = default)
     {
         return await Task.FromResult(_memoryCache.Get<IList<T>>(GetListKey(listId)) ?? Array.Empty<T>());
     }
 
     /// <inheritdoc />
-    protected override Task CoreSet(K key, T item, CancellationToken cancellationToken = default)
+    protected override Task CoreSet(TK key, T item, CancellationToken cancellationToken = default)
     {
         var expirationTime = CalculateExpirationTime();
+        var cacheEntryOptions = new MemoryCacheEntryOptions();
 
-        if (expirationTime == null)
-            _memoryCache.Set(KeyToKeyAdapter(key)!, item);
-        else
-            _memoryCache.Set(KeyToKeyAdapter(key)!, item, expirationTime.Value);
+        switch (_enableSlidingExpiration)
+        {
+            case true when TimeToLive != null:
+                cacheEntryOptions.SetSlidingExpiration(TimeToLive.Value);
+                break;
+            case false when expirationTime != null:
+                cacheEntryOptions.SetAbsoluteExpiration(expirationTime.Value);
+                break;
+        }
+
+        _memoryCache.Set(KeyToKeyAdapter(key)!, item, cacheEntryOptions);
 
         return Task.CompletedTask;
     }
@@ -88,9 +98,8 @@ public class MemoryCacheRepository<T, K> : CascadeRepository<T, K>, IMemoryCache
         return Task.CompletedTask;
     }
 
-
     /// <inheritdoc />
-    protected override Task CoreSetList<L>(L listId, IList<T> items, CancellationToken cancellationToken = default)
+    protected override Task CoreSetList<TL>(TL listId, IList<T> items, CancellationToken cancellationToken = default)
     {
         var expirationTime = CalculateExpirationTime();
         var key = GetListKey(listId);
@@ -104,7 +113,7 @@ public class MemoryCacheRepository<T, K> : CascadeRepository<T, K>, IMemoryCache
     }
 
     /// <inheritdoc />
-    protected override async Task CoreDelete(K key, CancellationToken cancellationToken = default)
+    protected override async Task CoreDelete(TK key, CancellationToken cancellationToken = default)
     {
         _memoryCache.Remove(KeyToKeyAdapter(key)!);
         await Task.CompletedTask;
@@ -121,4 +130,11 @@ public class MemoryCacheRepositoryOptions : CascadeRepositoryOptions
     ///     The configuration path for the memory cache repository options.
     /// </summary>
     public const string ConfigPath = "CascadeRepos:MemoryCache";
+    
+    /// <summary>
+    ///     Gets or sets a value indicating whether sliding expiration is enabled.
+    ///     If set to true, items in the cache will have sliding expiration based on the configured time-to-live.
+    ///     If set to false, items will have absolute expiration.
+    /// </summary>
+    public bool SlidingExpiration { get; set; } = false;
 }

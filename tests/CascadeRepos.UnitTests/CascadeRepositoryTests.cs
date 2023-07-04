@@ -2,7 +2,6 @@ using Amazon.DynamoDBv2.DataModel;
 using CascadeRepos.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Moq;
 using StackExchange.Redis;
@@ -125,7 +124,7 @@ public class CascadeRepositoryTests
             .SetNext(_memoryCacheRepository2);
 
         // Act
-        var foundRepository = _memoryCacheRepository1.FindRepository<MemoryCacheRepository<string, string>>(index: 1);
+        var foundRepository = _memoryCacheRepository1.FindRepository<MemoryCacheRepository<string, string>>(1);
 
         // Assert
         Assert.Equal(_memoryCacheRepository2, foundRepository);
@@ -140,7 +139,7 @@ public class CascadeRepositoryTests
             .SetNext(_memoryCacheRepository2);
 
         // Act
-        var foundRepository = _memoryCacheRepository1.FindRepository<MemoryCacheRepository<string, string>>(index: 2);
+        var foundRepository = _memoryCacheRepository1.FindRepository<MemoryCacheRepository<string, string>>(2);
 
         // Assert
         Assert.Null(foundRepository);
@@ -432,7 +431,7 @@ public class CascadeRepositoryTests
     {
         // Arrange
         var timeToLive = TimeSpan.FromMinutes(10);
-        var repository = new TestCascadeRepository<string, string>(timeToLive: timeToLive);
+        var repository = new TestCascadeRepository<string, string>(timeToLive);
 
         // Act
         var result = repository.CalculateExpirationTime();
@@ -476,7 +475,7 @@ public class CascadeRepositoryTests
         var timeToLive = TimeSpan.FromMinutes(10);
         var expirationTime = DateTimeOffset.UtcNow.AddMinutes(5);
         var repository =
-            new TestCascadeRepository<string, string>(timeToLive: timeToLive, expirationTime: expirationTime);
+            new TestCascadeRepository<string, string>(timeToLive, expirationTime);
 
         // Act
         var result = repository.CalculateExpirationTime();
@@ -493,7 +492,7 @@ public class CascadeRepositoryTests
         var timeToLive = TimeSpan.FromMinutes(5);
         var expirationTime = DateTimeOffset.UtcNow.AddMinutes(10);
         var repository =
-            new TestCascadeRepository<string, string>(timeToLive: timeToLive, expirationTime: expirationTime);
+            new TestCascadeRepository<string, string>(timeToLive, expirationTime);
 
         // Act
         var result = repository.CalculateExpirationTime();

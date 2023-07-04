@@ -6,42 +6,37 @@ namespace CascadeRepos;
 ///     Represents a base class for implementing a cascade repository.
 /// </summary>
 /// <typeparam name="T">The type of the items stored in the repository.</typeparam>
-/// <typeparam name="K">The type of the keys used to access the items.</typeparam>
-public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
+/// <typeparam name="TK">The type of the keys used to access the items.</typeparam>
+public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
 {
-    private ICascadeRepository<T, K>? _nextRepository;
+    private ICascadeRepository<T, TK>? _nextRepository;
     private bool _skipReading;
     private bool _skipWriting;
     
     /// <summary>
     /// The provider for retrieving the current date and time in UTC.
     /// </summary>
-    protected readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IDateTimeProvider _dateTimeProvider;
     
     /// <summary>
     ///     The absolute expiration time for the items stored in the repository.
     /// </summary>
-    protected DateTimeOffset? _expirationTime;
+    protected DateTimeOffset? ExpirationTime;
 
     /// <summary>
     ///     The time to live (TTL) for the items stored in the repository.
     /// </summary>
-    protected TimeSpan? _timeToLive;
-
-    /// <summary>
-    ///     The time to live (TTL) per entity, for the cached items, in seconds.
-    /// </summary>
-    protected IDictionary<string, int?>? _timeToLiveInSecondsByEntity;
+    protected TimeSpan? TimeToLive;
 
     /// <summary>
     ///     Gets or sets the key adapter function used to adapt keys before accessing the repository.
     /// </summary>
-    protected Func<K, K> KeyToKeyAdapter { get; private set; } = key => key;
+    protected Func<TK, TK> KeyToKeyAdapter { get; private set; } = key => key;
 
     /// <summary>
     ///     Gets or sets the object to key adapter function used to adapt objects into keys before accessing the repository.
     /// </summary>
-    protected Func<T, K> ObjectToKeyAdapter { get; private set; } = _ => throw new InvalidOperationException();
+    protected Func<T, TK> ObjectToKeyAdapter { get; private set; } = _ => throw new InvalidOperationException();
 
     /// <summary>
     ///     Gets or sets the key used in GetAll/SetAll methods when accessing the repository.
@@ -66,17 +61,17 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     protected CascadeRepository(IDateTimeProvider dateTimeProvider, CascadeRepositoryOptions? options)
     {
         _dateTimeProvider = dateTimeProvider;
-        _timeToLive = options?.TimeToLiveInSeconds is not null
+        TimeToLive = options?.TimeToLiveInSeconds is not null
             ? TimeSpan.FromSeconds(options.TimeToLiveInSeconds.Value)
             : null;
 
-        _timeToLiveInSecondsByEntity = options?.TimeToLiveInSecondsByEntity;
-        if (_timeToLiveInSecondsByEntity?.TryGetValue(typeof(T).Name, out var ttl) == true)
-            _timeToLive = ttl is not null ? TimeSpan.FromSeconds((int)ttl) : null;
+        IDictionary<string, int?>? timeToLiveInSecondsByEntity = options?.TimeToLiveInSecondsByEntity;
+        if (timeToLiveInSecondsByEntity?.TryGetValue(typeof(T).Name, out var ttl) == true)
+            TimeToLive = ttl is not null ? TimeSpan.FromSeconds((int)ttl) : null;
     }
 
     /// <inheritdoc />
-    public ICascadeRepository<T, K>? FindRepository(Type repositoryType, uint index = 0)
+    public ICascadeRepository<T, TK>? FindRepository(Type repositoryType, uint index = 0)
     {
         return GetType() == repositoryType || GetType().GetInterfaces().Contains(repositoryType)
             ? index == 0 ? this : _nextRepository?.FindRepository(repositoryType, index - 1)
@@ -84,13 +79,13 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     }
 
     /// <inheritdoc />
-    public R? FindRepository<R>(uint index = 0) where R : ICascadeRepository<T, K>
+    public TR? FindRepository<TR>(uint index = 0) where TR : ICascadeRepository<T, TK>
     {
-        return (R?)FindRepository(typeof(R), index);
+        return (TR?)FindRepository(typeof(TR), index);
     }
 
     /// <inheritdoc />
-    public async Task<T?> Get(K originalKey, bool updateDownStream = true,
+    public async Task<T?> Get(TK originalKey, bool updateDownStream = true,
         CancellationToken cancellationToken = default)
     {
         try
@@ -144,7 +139,7 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     }
 
     /// <inheritdoc />
-    public async Task<IList<T>> GetList<L>(L listId, bool updateDownStream = true,
+    public async Task<IList<T>> GetList<TL>(TL listId, bool updateDownStream = true,
         CancellationToken cancellationToken = default)
     {
         try
@@ -171,13 +166,13 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     }
 
     /// <inheritdoc />
-    public ICascadeRepository<T, K>? GetNext()
+    public ICascadeRepository<T, TK>? GetNext()
     {
         return _nextRepository;
     }
 
     /// <inheritdoc />
-    public async Task Refresh(K originalKey, CancellationToken cancellationToken = default)
+    public async Task Refresh(TK originalKey, CancellationToken cancellationToken = default)
     {
         await (GetNext() is not null
             ? GetNext()!.Refresh(originalKey, cancellationToken)
@@ -185,61 +180,61 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     }
 
     /// <inheritdoc />
-    public ICascadeRepository<T, K> SetNext(ICascadeRepository<T, K> nextRepository)
+    public ICascadeRepository<T, TK> SetNext(ICascadeRepository<T, TK> nextRepository)
     {
         return _nextRepository = nextRepository;
     }
 
     /// <inheritdoc />
-    public virtual ICascadeRepository<T, K> SetTimeToLive(TimeSpan? time)
+    public virtual ICascadeRepository<T, TK> SetTimeToLive(TimeSpan? time)
     {
-        _timeToLive = time;
+        TimeToLive = time;
         return this;
     }
 
     /// <inheritdoc />
-    public virtual ICascadeRepository<T, K> SetAbsoluteExpiration(DateTimeOffset expirationTime)
+    public virtual ICascadeRepository<T, TK> SetAbsoluteExpiration(DateTimeOffset expirationTime)
     {
-        _expirationTime = expirationTime;
+        ExpirationTime = expirationTime;
         return this;
     }
 
     /// <inheritdoc />
-    public ICascadeRepository<T, K> SkipRead<R>()
+    public ICascadeRepository<T, TK> SkipRead<TR>()
     {
-        if (GetType() == typeof(R) || GetType().GetInterfaces().Contains(typeof(R))) _skipReading = true;
+        if (GetType() == typeof(TR) || GetType().GetInterfaces().Contains(typeof(TR))) _skipReading = true;
 
-        if (GetNext() is not null) GetNext()!.SkipRead<R>();
+        if (GetNext() is not null) GetNext()!.SkipRead<TR>();
 
         return this;
     }
 
     /// <inheritdoc />
-    public ICascadeRepository<T, K> SkipReadThis()
+    public ICascadeRepository<T, TK> SkipReadThis()
     {
         _skipReading = true;
         return this;
     }
 
     /// <inheritdoc />
-    public ICascadeRepository<T, K> SkipWrite<R>()
+    public ICascadeRepository<T, TK> SkipWrite<TR>()
     {
-        if (GetType() == typeof(R) || GetType().GetInterfaces().Contains(typeof(R))) _skipWriting = true;
+        if (GetType() == typeof(TR) || GetType().GetInterfaces().Contains(typeof(TR))) _skipWriting = true;
 
-        if (GetNext() is not null) GetNext()!.SkipWrite<R>();
+        if (GetNext() is not null) GetNext()!.SkipWrite<TR>();
 
         return this;
     }
 
     /// <inheritdoc />
-    public ICascadeRepository<T, K> SkipWriteThis()
+    public ICascadeRepository<T, TK> SkipWriteThis()
     {
         _skipWriting = true;
         return this;
     }
 
     /// <inheritdoc />
-    public async Task Set(K key, T item, bool updateDownStream = false, CancellationToken cancellationToken = default)
+    public async Task Set(TK key, T item, bool updateDownStream = false, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -274,7 +269,7 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     }
 
     /// <inheritdoc />
-    public async Task Delete(K key, bool deleteDownStream = false, CancellationToken cancellationToken = default)
+    public async Task Delete(TK key, bool deleteDownStream = false, CancellationToken cancellationToken = default)
     {
         await CoreDelete(key, cancellationToken);
 
@@ -284,35 +279,35 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     }
 
     /// <inheritdoc />
-    public ICascadeRepository<T, K> AdaptKeyToKey(Func<K, K> keyAdapter)
+    public ICascadeRepository<T, TK> AdaptKeyToKey(Func<TK, TK> keyAdapter)
     {
         KeyToKeyAdapter = keyAdapter;
         return this;
     }
 
     /// <inheritdoc />
-    public virtual ICascadeRepository<T, K> AdaptObjectToKey(Func<T, K> keyAdapter)
+    public virtual ICascadeRepository<T, TK> AdaptObjectToKey(Func<T, TK> keyAdapter)
     {
         ObjectToKeyAdapter = keyAdapter;
         return this;
     }
 
     /// <inheritdoc />
-    public virtual ICascadeRepository<T, K> AdaptGetSetAllKey(string keyAdapter)
+    public virtual ICascadeRepository<T, TK> AdaptGetSetAllKey(string keyAdapter)
     {
         GetSetAllKey = keyAdapter;
         return this;
     }
 
     /// <inheritdoc />
-    public virtual ICascadeRepository<T, K> AdaptListPrefix(string prefix)
+    public virtual ICascadeRepository<T, TK> AdaptListPrefix(string prefix)
     {
         ListPrefix = prefix;
         return this;
     }
 
     /// <inheritdoc />
-    public virtual ICascadeRepository<T, K> AdaptListKey(string key)
+    public virtual ICascadeRepository<T, TK> AdaptListKey(string key)
     {
         ListKey = key;
         return this;
@@ -322,9 +317,9 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     /// Gets the final key to be used for Lists.
     /// </summary>
     /// <param name="listId"></param>
-    /// <typeparam name="L"></typeparam>
+    /// <typeparam name="TL"></typeparam>
     /// <returns>The key to be used for Lists</returns>
-    protected string GetListKey<L>(L listId) => ListKey ?? $"{ListPrefix}:{listId}";
+    protected string GetListKey<TL>(TL listId) => ListKey ?? $"{ListPrefix}:{listId}";
 
     /// <summary>
     ///     Calculates the expiration time for a cache item based on the configured time-to-live and absolute expiration time.
@@ -332,12 +327,12 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     /// <returns>The calculated expiration time, or <c>null</c> if no expiration time is set.</returns>
     protected internal DateTimeOffset? CalculateExpirationTime()
     {
-        DateTimeOffset? timeToLiveExpiration = _timeToLive != null
-            ? _dateTimeProvider.GetUtcNow().Add(_timeToLive.Value)
+        DateTimeOffset? timeToLiveExpiration = TimeToLive != null
+            ? _dateTimeProvider.GetUtcNow().Add(TimeToLive.Value)
             : null;
 
-        if (_expirationTime != null && (timeToLiveExpiration == null || timeToLiveExpiration > _expirationTime))
-            return _expirationTime;
+        if (ExpirationTime != null && (timeToLiveExpiration == null || timeToLiveExpiration > ExpirationTime))
+            return ExpirationTime;
 
         return timeToLiveExpiration;
     }
@@ -348,7 +343,7 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     /// <param name="key">The adapted key to access the item.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The retrieved item, or <c>null</c> if the item is not found.</returns>
-    protected abstract Task<T?> CoreGet(K key, CancellationToken cancellationToken = default);
+    protected abstract Task<T?> CoreGet(TK key, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Performs the core logic to retrieve all objects from the repository.
@@ -363,7 +358,7 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     /// <param name="listId">The list id to be retrieved.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A list of all objects retrieved from the repository.</returns>
-    protected abstract Task<IList<T>> CoreGetList<L>(L listId, CancellationToken cancellationToken = default);
+    protected abstract Task<IList<T>> CoreGetList<TL>(TL listId, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Performs the core logic to set the item in the repository.
@@ -371,7 +366,7 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     /// <param name="key">The key to access the item.</param>
     /// <param name="item">The item to set.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    protected abstract Task CoreSet(K key, T item, CancellationToken cancellationToken = default);
+    protected abstract Task CoreSet(TK key, T item, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Performs the core logic to set all objects from the repository.
@@ -387,12 +382,12 @@ public abstract class CascadeRepository<T, K> : ICascadeRepository<T, K>
     /// <param name="items">The list of items to set in the repository.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A list of all objects retrieved from the repository.</returns>
-    protected abstract Task CoreSetList<L>(L listId, IList<T> items, CancellationToken cancellationToken = default);
+    protected abstract Task CoreSetList<TL>(TL listId, IList<T> items, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Performs the core logic to delete the item in the repository.
     /// </summary>
     /// <param name="key">The key to access the item.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    protected abstract Task CoreDelete(K key, CancellationToken cancellationToken = default);
+    protected abstract Task CoreDelete(TK key, CancellationToken cancellationToken = default);
 }
