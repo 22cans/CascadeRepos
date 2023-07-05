@@ -1,5 +1,6 @@
 using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
@@ -22,7 +23,9 @@ public class RedisHashRepositoryTests
             .Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(_databaseMock.Object);
 
-        _repository = new RedisHashRepository<SomeObject, string>(Mock.Of<IDateTimeProvider>(),
+        _repository = new RedisHashRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
+            Mock.Of<IDateTimeProvider>(),
             _connectionMultiplexerMock.Object);
     }
 
@@ -152,6 +155,7 @@ public class RedisHashRepositoryTests
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
             new DefaultDateTimeProvider(),
             memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
@@ -230,6 +234,7 @@ public class RedisHashRepositoryTests
         memoryCache.Set($"{nameof(SomeObject)}:{listId}", new List<SomeObject> { value });
 
         var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
             Mock.Of<IDateTimeProvider>(),
             memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
@@ -266,6 +271,7 @@ public class RedisHashRepositoryTests
         memoryCache.Set($"{nameof(SomeObject)}:{listId}", new List<SomeObject> { value });
 
         var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
             Mock.Of<IDateTimeProvider>(),
             memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));

@@ -1,4 +1,5 @@
 using CascadeRepos.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace CascadeRepos;
 
@@ -17,6 +18,11 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     private string? _listKey;
 
     /// <summary>
+    /// The logger instance used for logging.
+    /// </summary>
+    protected readonly ILogger<CascadeRepository<T, TK>> Logger;
+
+    /// <summary>
     ///     The absolute expiration time for the items stored in the repository.
     /// </summary>
     protected DateTimeOffset? ExpirationTime;
@@ -25,19 +31,22 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     ///     The time to live (TTL) for the items stored in the repository.
     /// </summary>
     protected TimeSpan? TimeToLive;
-    
+
     /// <summary>
     ///     The type of expiration for the entity in the repository.
     /// </summary>
     protected readonly ExpirationType ExpirationType;
-    
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="CascadeRepository{T, K}" /> class.
     /// </summary>
+    /// <param name="logger"></param>
     /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
     /// <param name="options">The optional configuration options for the Cascade Repository.</param>
-    protected CascadeRepository(IDateTimeProvider dateTimeProvider, CascadeRepositoryOptions? options)
+    protected CascadeRepository(ILogger<CascadeRepository<T, TK>> logger, IDateTimeProvider dateTimeProvider,
+        CascadeRepositoryOptions? options)
     {
+        Logger = logger;
         _dateTimeProvider = dateTimeProvider;
         ExpirationType = options?.DefaultExpirationType ?? ExpirationType.Absolute;
         TimeToLive = options?.TimeToLiveInSeconds is not null
@@ -46,11 +55,11 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
 
         var timeToLiveInSecondsByEntity = options?.TimeToLiveInSecondsByEntity;
         if (timeToLiveInSecondsByEntity?.TryGetValue(typeof(T).Name, out var entityOptions) != true) return;
-        
-        ExpirationType = entityOptions?.ExpirationType ?? ExpirationType.Absolute; 
+
+        ExpirationType = entityOptions?.ExpirationType ?? ExpirationType;
         TimeToLive = entityOptions?.TimeToLiveInSeconds != null
             ? TimeSpan.FromSeconds((int)entityOptions?.TimeToLiveInSeconds!)
-            : null;
+            : TimeToLive;
     }
 
     /// <summary>
@@ -88,19 +97,38 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     {
         try
         {
-            if (!_skipReading)
+            switch (_skipReading)
             {
-                var value = await CoreGet(originalKey, cancellationToken);
+                case true:
+                    LogSkipReading();
+                    break;
 
-                if (value is not null) return value;
+                case false:
+                {
+                    LogGettingData();
+                    var value = await CoreGet(originalKey, cancellationToken);
+
+                    if (value is not null) return value;
+                    break;
+                }
             }
 
             if (GetNext() is null) return default;
 
             var next = await GetNext()!.Get(originalKey, updateDownStream, cancellationToken);
+            if (next is null || !updateDownStream) return next;
 
-            if (next is not null && !_skipWriting && updateDownStream)
-                await CoreSet(originalKey, next, cancellationToken);
+            switch (_skipWriting)
+            {
+                case true:
+                    LogSkipWriting();
+                    break;
+
+                case false:
+                    LogSettingData();
+                    await CoreSet(originalKey, next, cancellationToken);
+                    break;
+            }
 
             return next;
         }
@@ -115,18 +143,38 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     {
         try
         {
-            if (!_skipReading)
+            switch (_skipReading)
             {
-                var value = await CoreGetAll(cancellationToken);
+                case true:
+                    LogSkipReading();
+                    break;
 
-                if (value.Any()) return value;
+                case false:
+                {
+                    LogGettingData();
+                    var value = await CoreGetAll(cancellationToken);
+
+                    if (value.Any()) return value;
+                    break;
+                }
             }
 
             if (GetNext() is null) return Array.Empty<T>();
 
             var next = await GetNext()!.GetAll(updateDownStream, cancellationToken);
+            if (!next.Any() || !updateDownStream) return next;
 
-            if (next.Any() && !_skipWriting && updateDownStream) await CoreSetAll(next, cancellationToken);
+            switch (_skipWriting)
+            {
+                case true:
+                    LogSkipWriting();
+                    break;
+
+                case false:
+                    LogSettingData();
+                    await CoreSetAll(next, cancellationToken);
+                    break;
+            }
 
             return next;
         }
@@ -142,18 +190,38 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     {
         try
         {
-            if (!_skipReading)
+            switch (_skipReading)
             {
-                var value = await CoreGetList(listId, cancellationToken);
+                case true:
+                    LogSkipReading();
+                    break;
 
-                if (value.Any()) return value;
+                case false:
+                {
+                    LogGettingData();
+                    var value = await CoreGetList(listId, cancellationToken);
+
+                    if (value.Any()) return value;
+                    break;
+                }
             }
 
             if (GetNext() is null) return Array.Empty<T>();
 
             var next = await GetNext()!.GetList(listId, updateDownStream, cancellationToken);
+            if (!next.Any() || !updateDownStream) return next;
 
-            if (next.Any() && !_skipWriting && updateDownStream) await CoreSetList(listId, next, cancellationToken);
+            switch (_skipWriting)
+            {
+                case true:
+                    LogSkipWriting();
+                    break;
+
+                case false:
+                    LogSettingData();
+                    await CoreSetList(listId, next, cancellationToken);
+                    break;
+            }
 
             return next;
         }
@@ -172,9 +240,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     /// <inheritdoc />
     public async Task Refresh(TK originalKey, CancellationToken cancellationToken = default)
     {
-        await (GetNext() is not null
-            ? GetNext()!.Refresh(originalKey, cancellationToken)
-            : Get(originalKey, true, cancellationToken));
+        await Get(originalKey, true, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -236,7 +302,17 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     {
         try
         {
-            if (!_skipWriting) await CoreSet(key, item, cancellationToken);
+            switch (_skipWriting)
+            {
+                case true:
+                    LogSkipWriting();
+                    break;
+
+                case false:
+                    LogSettingData();
+                    await CoreSet(key, item, cancellationToken);
+                    break;
+            }
 
             if (GetNext() is null || !updateDownStream) return;
 
@@ -254,7 +330,17 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     {
         try
         {
-            if (!_skipWriting) await CoreSetAll(items, cancellationToken);
+            switch (_skipWriting)
+            {
+                case true:
+                    LogSkipWriting();
+                    break;
+
+                case false:
+                    LogSettingData();
+                    await CoreSetAll(items, cancellationToken);
+                    break;
+            }
 
             if (GetNext() is null || !updateDownStream) return;
 
@@ -391,4 +477,16 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     /// <param name="key">The key to access the item.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     protected abstract Task CoreDelete(TK key, CancellationToken cancellationToken = default);
+
+    private void LogSkipReading() => Logger.LogDebug("{ThreadId}: Skip reading from {Name}",
+        Environment.CurrentManagedThreadId, GetType().Name);
+
+    private void LogSkipWriting() => Logger.LogDebug("{ThreadId}: Skip writing for {Name}",
+        Environment.CurrentManagedThreadId, GetType().Name);
+
+    private void LogGettingData() => Logger.LogDebug("{ThreadId}: Getting data from {Name}",
+        Environment.CurrentManagedThreadId, GetType().Name);
+
+    private void LogSettingData() => Logger.LogDebug("{ThreadId}: Setting data for {Name}",
+        Environment.CurrentManagedThreadId, GetType().Name);
 }

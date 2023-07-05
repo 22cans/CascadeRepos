@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace CascadeRepos;
@@ -34,11 +35,13 @@ public class MemoryCacheRepository<T, TK> : CascadeRepository<T, TK>, IMemoryCac
     ///     Initializes a new instance of the <see cref="MemoryCacheRepository{T, K}" /> class
     ///     using the specified <see cref="IMemoryCache" /> and <see cref="MemoryCacheRepositoryOptions" />.
     /// </summary>
+    /// <param name="logger">The logger instance used for logging.</param>
     /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
     /// <param name="memoryCache">The memory cache instance to be used.</param>
     /// <param name="options">The options specifying the TTL for the cache items.</param>
-    public MemoryCacheRepository(IDateTimeProvider dateTimeProvider, IMemoryCache memoryCache,
-        IOptions<MemoryCacheRepositoryOptions>? options) : base(dateTimeProvider, options?.Value)
+    public MemoryCacheRepository(ILogger<CascadeRepository<T, TK>> logger, IDateTimeProvider dateTimeProvider,
+        IMemoryCache memoryCache, IOptions<MemoryCacheRepositoryOptions>? options) : base(logger, dateTimeProvider,
+        options?.Value)
     {
         _memoryCache = memoryCache;
     }

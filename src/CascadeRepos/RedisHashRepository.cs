@@ -1,4 +1,5 @@
 using CascadeRepos.Extensions;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
@@ -39,10 +40,11 @@ public class RedisHashRepository<T, TK> : CascadeRepository<T, TK>, IRedisHashRe
     /// <summary>
     ///     Initializes a new instance of the <see cref="RedisHashRepository{T, K}" /> class.
     /// </summary>
+    /// <param name="logger">The logger instance used for logging.</param>
     /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
     /// <param name="connectionMultiplexer">The Redis connection multiplexer.</param>
-    public RedisHashRepository(IDateTimeProvider dateTimeProvider, IConnectionMultiplexer connectionMultiplexer) :
-        base(dateTimeProvider, null)
+    public RedisHashRepository(ILogger<CascadeRepository<T, TK>> logger, IDateTimeProvider dateTimeProvider,
+        IConnectionMultiplexer connectionMultiplexer) : base(logger, dateTimeProvider, null)
     {
         _database = connectionMultiplexer.GetDatabase();
     }

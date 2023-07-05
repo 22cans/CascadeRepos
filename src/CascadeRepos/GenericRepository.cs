@@ -1,4 +1,5 @@
 using CascadeRepos.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace CascadeRepos;
 
@@ -68,8 +69,10 @@ public class GenericRepository<T, TK> : CascadeRepository<T, TK>, IGenericReposi
     /// <summary>
     ///     Initializes a new instance of the <see cref="GenericRepository{T, K}" /> class.
     /// </summary>
+    /// <param name="logger">The logger instance used for logging.</param>
     /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
-    public GenericRepository(IDateTimeProvider dateTimeProvider) : base(dateTimeProvider, null)
+    public GenericRepository(ILogger<CascadeRepository<T, TK>> logger, IDateTimeProvider dateTimeProvider) : base(
+        logger, dateTimeProvider, null)
     {
     }
 

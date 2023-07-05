@@ -1,6 +1,7 @@
 using Amazon.DynamoDBv2.DataModel;
 using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -16,6 +17,7 @@ public class DynamoDbRepositoryTests
     {
         _dynamoDbContextMock = new Mock<IDynamoDBContext>();
         _repository = new DynamoDbRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
             Mock.Of<IDateTimeProvider>(),
             _dynamoDbContextMock.Object);
     }
@@ -213,6 +215,7 @@ public class DynamoDbRepositoryTests
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
             Mock.Of<IDateTimeProvider>(),
             memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));

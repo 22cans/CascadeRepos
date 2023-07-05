@@ -1,11 +1,13 @@
 ﻿using CascadeRepos.Extensions;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace CascadeRepos.UnitTests;
 
 internal class TestCascadeRepository<T, TK> : CascadeRepository<T, TK>
 {
     public TestCascadeRepository(TimeSpan? timeToLive = null, DateTimeOffset? expirationTime = null)
-        : base(new DefaultDateTimeProvider(), null)
+        : base(Mock.Of<ILogger<CascadeRepository<T, TK>>>(), new DefaultDateTimeProvider(), null)
     {
         TimeToLive = timeToLive;
         ExpirationTime = expirationTime;
