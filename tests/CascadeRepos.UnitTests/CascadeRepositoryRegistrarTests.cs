@@ -3,6 +3,7 @@ using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
 using Xunit;
@@ -20,6 +21,7 @@ public class CascadeRepositoryRegistrarTests
         services.AddTransient(_ => Mock.Of<IConnectionMultiplexer>());
         services.AddTransient(_ => Mock.Of<IDynamoDBContext>());
         services.AddTransient(_ => Mock.Of<IDateTimeProvider>());
+        services.AddTransient(_ => Mock.Of<ILogger<CascadeRepository<SomeObject, int>>>());
         var configValues = new Dictionary<string, string>
         {
             ["CascadeRepos:MemoryCache:TimeToLiveInSeconds"] = "60",
@@ -51,6 +53,7 @@ public class CascadeRepositoryRegistrarTests
         services.AddTransient(_ => Mock.Of<IConnectionMultiplexer>());
         services.AddTransient(_ => Mock.Of<IDynamoDBContext>());
         services.AddTransient(_ => Mock.Of<IDateTimeProvider>());
+        services.AddTransient(_ => Mock.Of<ILogger<CascadeRepository<SomeObject, int>>>());
         var configValues = new Dictionary<string, string>
         {
             ["CascadeRepos:MemoryCache:TimeToLiveInSeconds"] = "60",
