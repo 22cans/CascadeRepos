@@ -440,7 +440,7 @@ public class CascadeRepositoryTests
         await repo1.Refresh(key);
 
         // Assert
-        memoryCacheMock.Verify(x => x.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny!), Times.Never);
+        memoryCacheMock.Verify(x => x.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny!), Times.Once);
         dynamoDbContextMock.Verify(
             x => x.LoadAsync<SomeObject>(key, It.IsAny<object>(), It.IsAny<DynamoDBOperationConfig>(),
                 It.IsAny<CancellationToken>()),
