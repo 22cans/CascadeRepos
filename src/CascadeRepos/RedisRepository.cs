@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using CascadeRepos.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using StackExchange.Redis;
@@ -35,11 +36,13 @@ public class RedisRepository<T, TK> : CascadeRepository<T, TK>, IRedisRepository
     ///     Initializes a new instance of the <see cref="RedisRepository{T, K}" /> class
     ///     using the specified <see cref="IConnectionMultiplexer" /> and <see cref="RedisRepositoryOptions" />.
     /// </summary>
+    /// <param name="logger">The logger instance used for logging.</param>
     /// <param name="dateTimeProvider">The provider for retrieving the current date and time in UTC.</param>
     /// <param name="connectionMultiplexer">The Redis connection multiplexer instance.</param>
     /// <param name="options">The options specifying the TTL for the cache items.</param>
-    public RedisRepository(IDateTimeProvider dateTimeProvider, IConnectionMultiplexer connectionMultiplexer,
-        IOptions<RedisRepositoryOptions>? options) : base(dateTimeProvider, options?.Value)
+    public RedisRepository(ILogger<CascadeRepository<T, TK>> logger, IDateTimeProvider dateTimeProvider,
+        IConnectionMultiplexer connectionMultiplexer, IOptions<RedisRepositoryOptions>? options) : base(logger,
+        dateTimeProvider, options?.Value)
     {
         _database = connectionMultiplexer.GetDatabase();
     }

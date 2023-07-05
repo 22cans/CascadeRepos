@@ -1,5 +1,6 @@
 using CascadeRepos.Extensions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
@@ -23,6 +24,7 @@ public class RedisRepositoryTests
             .Returns(_databaseMock.Object);
 
         _repository = new RedisRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
             Mock.Of<IDateTimeProvider>(),
             _connectionMultiplexerMock.Object,
             Options.Create(new RedisRepositoryOptions { TimeToLiveInSeconds = 60 }));
@@ -163,6 +165,7 @@ public class RedisRepositoryTests
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
             new DefaultDateTimeProvider(),
             memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
@@ -239,6 +242,7 @@ public class RedisRepositoryTests
         memoryCache.Set($"{nameof(SomeObject)}:{listId}", new List<SomeObject> { value });
 
         var memoryCacheRepo = new MemoryCacheRepository<SomeObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeObject, string>>>(),
             Mock.Of<IDateTimeProvider>(),
             memoryCache,
             Options.Create(new MemoryCacheRepositoryOptions { TimeToLiveInSeconds = 60 }));
