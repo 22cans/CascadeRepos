@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace CascadeRepos;
 
@@ -23,7 +24,7 @@ public class CascadeRepositoryOptions
     }
 
     /// <summary>
-    /// The default type of expiration for entities not specified in <see cref="TimeToLiveInSecondsByEntity"/>.
+    ///     The default type of expiration for entities not specified in <see cref="TimeToLiveInSecondsByEntity" />.
     /// </summary>
     public ExpirationType DefaultExpirationType { get; init; } = ExpirationType.Absolute;
 }
@@ -31,15 +32,18 @@ public class CascadeRepositoryOptions
 /// <summary>
 ///     Represents the types of cache entry expiration.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ExpirationType
 {
     /// <summary>
-    ///     Indicates absolute expiration, where the cache entry is considered expired after a specific duration or at a specific point in time.
+    ///     Indicates absolute expiration, where the cache entry is considered expired after a specific duration or at a
+    ///     specific point in time.
     /// </summary>
     Absolute = 0,
 
     /// <summary>
-    ///     Indicates sliding expiration, where the expiration time for a cache entry is extended each time the entry is accessed.
+    ///     Indicates sliding expiration, where the expiration time for a cache entry is extended each time the entry is
+    ///     accessed.
     /// </summary>
     Sliding = 1
 }

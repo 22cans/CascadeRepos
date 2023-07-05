@@ -11,16 +11,22 @@ namespace CascadeRepos;
 public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
 {
     private readonly IDateTimeProvider _dateTimeProvider;
+
+    /// <summary>
+    ///     The type of expiration for the entity in the repository.
+    /// </summary>
+    protected readonly ExpirationType ExpirationType;
+
+    /// <summary>
+    ///     The logger instance used for logging.
+    /// </summary>
+    protected readonly ILogger<CascadeRepository<T, TK>> Logger;
+
+    private string? _listKey;
+    private string _listPrefix = typeof(T).Name;
     private ICascadeRepository<T, TK>? _nextRepository;
     private bool _skipReading;
     private bool _skipWriting;
-    private string _listPrefix = typeof(T).Name;
-    private string? _listKey;
-
-    /// <summary>
-    /// The logger instance used for logging.
-    /// </summary>
-    protected readonly ILogger<CascadeRepository<T, TK>> Logger;
 
     /// <summary>
     ///     The absolute expiration time for the items stored in the repository.
@@ -31,11 +37,6 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     ///     The time to live (TTL) for the items stored in the repository.
     /// </summary>
     protected TimeSpan? TimeToLive;
-
-    /// <summary>
-    ///     The type of expiration for the entity in the repository.
-    /// </summary>
-    protected readonly ExpirationType ExpirationType;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="CascadeRepository{T, K}" /> class.
@@ -478,15 +479,27 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     /// <param name="cancellationToken">The cancellation token.</param>
     protected abstract Task CoreDelete(TK key, CancellationToken cancellationToken = default);
 
-    private void LogSkipReading() => Logger.LogDebug("{ThreadId}: Skip reading from {Name}",
-        Environment.CurrentManagedThreadId, GetType().Name);
+    private void LogSkipReading()
+    {
+        Logger.LogDebug("{ThreadId}: Skip reading from {Name}",
+            Environment.CurrentManagedThreadId, GetType().Name);
+    }
 
-    private void LogSkipWriting() => Logger.LogDebug("{ThreadId}: Skip writing for {Name}",
-        Environment.CurrentManagedThreadId, GetType().Name);
+    private void LogSkipWriting()
+    {
+        Logger.LogDebug("{ThreadId}: Skip writing for {Name}",
+            Environment.CurrentManagedThreadId, GetType().Name);
+    }
 
-    private void LogGettingData() => Logger.LogDebug("{ThreadId}: Getting data from {Name}",
-        Environment.CurrentManagedThreadId, GetType().Name);
+    private void LogGettingData()
+    {
+        Logger.LogDebug("{ThreadId}: Getting data from {Name}",
+            Environment.CurrentManagedThreadId, GetType().Name);
+    }
 
-    private void LogSettingData() => Logger.LogDebug("{ThreadId}: Setting data for {Name}",
-        Environment.CurrentManagedThreadId, GetType().Name);
+    private void LogSettingData()
+    {
+        Logger.LogDebug("{ThreadId}: Setting data for {Name}",
+            Environment.CurrentManagedThreadId, GetType().Name);
+    }
 }
