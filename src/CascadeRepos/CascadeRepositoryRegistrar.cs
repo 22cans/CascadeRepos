@@ -1,3 +1,4 @@
+using CascadeRepos.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,6 +29,7 @@ public static class CascadeRepositoryRegistrar
         IConfiguration configuration)
     {
         return services
+            .AddTransient<IDateTimeProvider, DefaultDateTimeProvider>()
             .AddMemoryCacheRepository(configuration)
             .AddRedisRepository(configuration)
             .AddRedisHashRepository()
