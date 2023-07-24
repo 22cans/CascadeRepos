@@ -178,7 +178,6 @@ public class RedisHashRepositoryTests
         _databaseMock.Verify(x => x.HashGetAllAsync(It.IsAny<RedisKey>(), CommandFlags.None), Times.Once);
     }
 
-
     [Fact]
     public async Task GetList_Returns_ListOfItems()
     {
@@ -255,7 +254,6 @@ public class RedisHashRepositoryTests
         _databaseMock.Verify(x => x.HashGetAllAsync(It.IsAny<RedisKey>(), CommandFlags.None), Times.Once);
     }
 
-
     [Fact]
     public async Task Throws_When_ObjectToKey_Is_Not_Defined()
     {
@@ -284,5 +282,29 @@ public class RedisHashRepositoryTests
         // Act
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await _repository.GetList(listId, true, CancellationToken.None));
+    }
+    
+    [Fact]
+    public async Task CoreSet_Sets_Hash_And_Expires_Key()
+    {
+        // Arrange
+        var key = "cacheKey";
+        var value = new SomeObject
+        {
+            Id = key,
+            Name = "Some Name"
+        };
+
+        // Act
+        _repository.SetTimeToLive(TimeSpan.FromSeconds(2));
+        await _repository.Set(key, value);
+
+        // Assert
+        _databaseMock.Verify(
+            d => d.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(),It.IsAny<RedisValue>(), It.IsAny<When>(),
+                It.IsAny<CommandFlags>()), Times.Once);
+        _databaseMock.Verify(
+            d => d.KeyExpireAsync(It.IsAny<RedisKey>(), It.IsAny<DateTime?>(), It.IsAny<CommandFlags>()),
+                Times.Once);
     }
 }

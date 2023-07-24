@@ -96,6 +96,8 @@ public class RedisHashRepository<T, TK> : CascadeRepository<T, TK>, IRedisHashRe
     {
         await _database.HashSetAsync(_redisKeyAdapter()!.ToString(), KeyToKeyAdapter(key)!.ToString(),
             JsonConvert.SerializeObject(item));
+
+        await SetExpiration();
     }
 
     /// <inheritdoc />
@@ -104,6 +106,8 @@ public class RedisHashRepository<T, TK> : CascadeRepository<T, TK>, IRedisHashRe
         foreach (var item in items)
             await _database.HashSetAsync(GetSetAllKey, ObjectToKeyAdapter(item)!.ToString(),
                 JsonConvert.SerializeObject(item));
+        
+        await SetExpiration();
     }
 
     /// <inheritdoc />
@@ -120,5 +124,13 @@ public class RedisHashRepository<T, TK> : CascadeRepository<T, TK>, IRedisHashRe
     protected override async Task CoreDelete(TK key, CancellationToken cancellationToken = default)
     {
         await _database.HashDeleteAsync(_redisKeyAdapter()!.ToString(), KeyToKeyAdapter(key)!.ToString());
+    }
+
+    private async Task SetExpiration()
+    {
+        var expirationTime = CalculateExpirationTime();
+        
+        if (expirationTime != null)
+            await _database.KeyExpireAsync(_redisKeyAdapter()!.ToString(), expirationTime.Value.DateTime);
     }
 }
