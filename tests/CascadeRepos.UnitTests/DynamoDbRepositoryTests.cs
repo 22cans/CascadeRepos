@@ -138,6 +138,33 @@ public class DynamoDbRepositoryTests
     }
 
     [Fact]
+    public async Task Set_Configures_TimeToLive()
+    {
+        // Arrange
+        var key = "cacheKey";
+        var defaultExpirationTime = DateTime.Now.AddDays(2); 
+        var value = new SomeExpirableObject
+        {
+            Id = key,
+            Name = "Some Name",
+            ExpirationTime = defaultExpirationTime
+        };
+        var repository = new DynamoDbRepository<SomeExpirableObject, string>(
+            Mock.Of<ILogger<CascadeRepository<SomeExpirableObject, string>>>(),
+            Mock.Of<IDateTimeProvider>(),
+            _dynamoDbContextMock.Object);
+        
+        // Act
+        var expirationTime = DateTimeOffset.Now.AddMinutes(5);
+        repository.SetTimeToLiveProperty(nameof(SomeExpirableObject.ExpirationTime));
+        repository.SetAbsoluteExpiration(expirationTime);
+        await repository.Set(key, value, false, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(expirationTime.UtcDateTime, value.ExpirationTime); 
+    }
+    
+    [Fact]
     public async Task GetAll_Returns_ListOfItems()
     {
         // Arrange
@@ -323,7 +350,6 @@ public class DynamoDbRepositoryTests
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
-
 
     [Fact]
     public async Task Delete_With_RangeKey_With_OperationConfig()

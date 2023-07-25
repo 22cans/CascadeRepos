@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Amazon.DynamoDBv2.DataModel;
 using CascadeRepos.Extensions;
 using Microsoft.Extensions.Logging;
@@ -33,6 +34,17 @@ public interface IDynamoDbRepository<T, TK> : ICascadeRepository<T, TK>, IDynamo
     /// <param name="operationConfig">The <see cref="DynamoDBOperationConfig" /> to be used.</param>
     /// <returns>The current <see cref="DynamoDbRepository{T, K}" /> instance.</returns>
     IDynamoDbRepository<T, TK> SetOperationConfig(DynamoDBOperationConfig? operationConfig);
+
+    /// <summary>
+    /// Sets the Time-To-Live property for the object handled by the repository instance.
+    /// </summary>
+    /// <param name="propertyName">The name of the property to be used as the Time-To-Live property.</param>
+    /// <returns>Returns the current repository instance with the Time-To-Live property set.</returns>
+    /// <remarks>
+    /// The property specified by the <paramref name="propertyName"/> should exist in the type <typeparamref name="T"/>, 
+    /// and should be able to store a DateTime value and have the attribute `[DynamoDBProperty(StoreAsEpoch = true)]`. 
+    /// </remarks>
+    IDynamoDbRepository<T, TK> SetTimeToLiveProperty(string propertyName);
 }
 
 /// <summary>
@@ -45,6 +57,7 @@ public class DynamoDbRepository<T, TK> : CascadeRepository<T, TK>, IDynamoDbRepo
     private readonly IDynamoDBContext _dbContext;
     private DynamoDBOperationConfig? _operationConfig;
     private Func<TK, object?> _rangeKeyAdapter = _ => null;
+    private PropertyInfo? _timeToLivePropertyName;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="DynamoDbRepository{T,K}" /> class.
@@ -69,6 +82,13 @@ public class DynamoDbRepository<T, TK> : CascadeRepository<T, TK>, IDynamoDbRepo
     public IDynamoDbRepository<T, TK> SetOperationConfig(DynamoDBOperationConfig? operationConfig)
     {
         _operationConfig = operationConfig;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IDynamoDbRepository<T, TK> SetTimeToLiveProperty(string propertyName)
+    {
+        _timeToLivePropertyName = typeof(T).GetProperty(propertyName);
         return this;
     }
 
@@ -99,7 +119,18 @@ public class DynamoDbRepository<T, TK> : CascadeRepository<T, TK>, IDynamoDbRepo
     /// </remarks>
     protected override async Task CoreSet(TK _, T item, CancellationToken cancellationToken = default)
     {
+        SetTimeToLive(item);
         await _dbContext.SaveAsync(item, cancellationToken);
+    }
+
+    private T SetTimeToLive(T item)
+    {
+        if (_timeToLivePropertyName == null) return item;
+
+        var dateTimeOffset = CalculateExpirationTime();
+        if (dateTimeOffset.HasValue) _timeToLivePropertyName.SetValue(item, dateTimeOffset.Value.UtcDateTime);
+
+        return item;
     }
 
     /// <inheritdoc />
@@ -108,7 +139,7 @@ public class DynamoDbRepository<T, TK> : CascadeRepository<T, TK>, IDynamoDbRepo
     protected override async Task CoreSetAll(IList<T> items, CancellationToken cancellationToken = default)
     {
         var batch = _dbContext.CreateBatchWrite<T>(_operationConfig);
-        batch.AddPutItems(items);
+        batch.AddPutItems(items.Select(SetTimeToLive));
         await batch.ExecuteAsync(cancellationToken);
     }
 
@@ -118,7 +149,7 @@ public class DynamoDbRepository<T, TK> : CascadeRepository<T, TK>, IDynamoDbRepo
     protected override async Task CoreSetList<TL>(TL _, IList<T> items, CancellationToken cancellationToken = default)
     {
         var batch = _dbContext.CreateBatchWrite<T>(_operationConfig);
-        batch.AddPutItems(items);
+        batch.AddPutItems(items.Select(SetTimeToLive));
         await batch.ExecuteAsync(cancellationToken);
     }
 
