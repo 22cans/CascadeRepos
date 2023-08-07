@@ -483,14 +483,14 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
 
     private void LogSkipReading()
     {
-        Logger.LogDebug("{ThreadId}: Skip reading from {Name}",
-            Environment.CurrentManagedThreadId, GetType().Name);
+        Logger.LogDebug("{ThreadId}: Skip reading '{Entity}' data from {Name}",
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name);
     }
 
     private void LogSkipWriting()
     {
-        Logger.LogDebug("{ThreadId}: Skip writing for {Name}",
-            Environment.CurrentManagedThreadId, GetType().Name);
+        Logger.LogDebug("{ThreadId}: Skip writing '{Entity}' data for {Name}",
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name);
     }
 
     private void LogGettingData()
