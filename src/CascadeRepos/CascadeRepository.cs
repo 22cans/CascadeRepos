@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CascadeRepos.Extensions;
 using Microsoft.Extensions.Logging;
 
@@ -502,7 +503,8 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     private void LogGotData(T? data)
     {
         Logger.LogDebug("{ThreadId}: '{Entity}' data got from '{Name}': '{Data}'",
-            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name, data?.ToString() ?? string.Empty);
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name, 
+            data is null ? string.Empty: JsonSerializer.Serialize(data));
     }
 
     private void LogSettingData()
@@ -514,6 +516,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     private void LogSetData<TA>(TA? data)
     {
         Logger.LogDebug("{ThreadId}: '{Entity}' data set for '{Name}: '{Data}'",
-            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name, data?.ToString() ?? string.Empty);
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name, 
+            data is null ? string.Empty: JsonSerializer.Serialize(data));
     }
 }
