@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CascadeRepos.Extensions;
 using Microsoft.Extensions.Logging;
 
@@ -108,7 +109,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
                 {
                     LogGettingData();
                     var value = await CoreGet(originalKey, cancellationToken);
-
+                    LogGotData(value);
                     if (value is not null) return value;
                     break;
                 }
@@ -128,6 +129,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
                 case false:
                     LogSettingData();
                     await CoreSet(originalKey, next, cancellationToken);
+                    LogSetData(next);
                     break;
             }
 
@@ -312,6 +314,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
                 case false:
                     LogSettingData();
                     await CoreSet(key, item, cancellationToken);
+                    LogSetData(item);
                     break;
             }
 
@@ -481,25 +484,39 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
 
     private void LogSkipReading()
     {
-        Logger.LogDebug("{ThreadId}: Skip reading from {Name}",
-            Environment.CurrentManagedThreadId, GetType().Name);
+        Logger.LogDebug("{ThreadId}: Skip reading '{Entity}' data from {Name}",
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name);
     }
 
     private void LogSkipWriting()
     {
-        Logger.LogDebug("{ThreadId}: Skip writing for {Name}",
-            Environment.CurrentManagedThreadId, GetType().Name);
+        Logger.LogDebug("{ThreadId}: Skip writing '{Entity}' data for {Name}",
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name);
     }
 
     private void LogGettingData()
     {
-        Logger.LogDebug("{ThreadId}: Getting data from {Name}",
-            Environment.CurrentManagedThreadId, GetType().Name);
+        Logger.LogDebug("{ThreadId}: Getting '{Entity}' data from '{Name}'",
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name);
+    }
+
+    private void LogGotData(T? data)
+    {
+        Logger.LogDebug("{ThreadId}: '{Entity}' data got from '{Name}': '{Data}'",
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name, 
+            data is null ? string.Empty: JsonSerializer.Serialize(data));
     }
 
     private void LogSettingData()
     {
-        Logger.LogDebug("{ThreadId}: Setting data for {Name}",
-            Environment.CurrentManagedThreadId, GetType().Name);
+        Logger.LogDebug("{ThreadId}: Setting '{Entity}' data for '{Name}'",
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name);
+    }
+    
+    private void LogSetData<TA>(TA? data)
+    {
+        Logger.LogDebug("{ThreadId}: '{Entity}' data set for '{Name}: '{Data}'",
+            Environment.CurrentManagedThreadId, typeof(T).Name, GetType().Name, 
+            data is null ? string.Empty: JsonSerializer.Serialize(data));
     }
 }
