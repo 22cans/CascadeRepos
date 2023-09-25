@@ -78,7 +78,7 @@ public class RedisHashRepository<T, TK> : CascadeRepository<T, TK>, IRedisHashRe
     {
         var result = await _database.HashGetAllAsync(GetSetAllKey);
         return result is null
-            ? Array.Empty<T>()
+            ? new List<T>()
             : result.Select(x => JsonConvert.DeserializeObject<T>(x.Value)!).ToList();
     }
 
@@ -87,7 +87,7 @@ public class RedisHashRepository<T, TK> : CascadeRepository<T, TK>, IRedisHashRe
     {
         var result = await _database.HashGetAllAsync(GetListKey(listId));
         return result is null
-            ? Array.Empty<T>()
+            ? new List<T>()
             : result.Select(x => JsonConvert.DeserializeObject<T>(x.Value)!).ToList();
     }
 

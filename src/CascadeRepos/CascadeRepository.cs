@@ -162,7 +162,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
                 }
             }
 
-            if (GetNext() is null) return Array.Empty<T>();
+            if (GetNext() is null) return new List<T>();
 
             var next = await GetNext()!.GetAll(updateDownStream, cancellationToken);
             if (!next.Any() || !updateDownStream) return next;
@@ -209,7 +209,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
                 }
             }
 
-            if (GetNext() is null) return Array.Empty<T>();
+            if (GetNext() is null) return new List<T>();
 
             var next = await GetNext()!.GetList(listId, updateDownStream, cancellationToken);
             if (!next.Any() || !updateDownStream) return next;

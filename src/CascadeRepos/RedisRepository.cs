@@ -60,7 +60,7 @@ public class RedisRepository<T, TK> : CascadeRepository<T, TK>, IRedisRepository
     {
         var value = await _database.StringGetAsync(GetSetAllKey);
 
-        return value.IsNull ? Array.Empty<T>() : JsonConvert.DeserializeObject<IList<T>>(value) ?? Array.Empty<T>();
+        return value.IsNull ? new List<T>() : JsonConvert.DeserializeObject<IList<T>>(value) ?? new List<T>();
     }
 
     /// <inheritdoc />
@@ -69,7 +69,7 @@ public class RedisRepository<T, TK> : CascadeRepository<T, TK>, IRedisRepository
         var key = GetListKey(listId);
         var value = await _database.StringGetAsync(key);
 
-        return value.IsNull ? Array.Empty<T>() : JsonConvert.DeserializeObject<IList<T>>(value) ?? Array.Empty<T>();
+        return value.IsNull ? new List<T>() : JsonConvert.DeserializeObject<IList<T>>(value) ?? new List<T>();
     }
 
     /// <inheritdoc />

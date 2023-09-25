@@ -55,13 +55,13 @@ public class MemoryCacheRepository<T, TK> : CascadeRepository<T, TK>, IMemoryCac
     /// <inheritdoc />
     protected override async Task<IList<T>> CoreGetAll(CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(_memoryCache.Get<IList<T>>(GetSetAllKey) ?? Array.Empty<T>());
+        return await Task.FromResult(_memoryCache.Get<IList<T>>(GetSetAllKey) ?? new List<T>());
     }
 
     /// <inheritdoc />
     protected override async Task<IList<T>> CoreGetList<TL>(TL listId, CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(_memoryCache.Get<IList<T>>(GetListKey(listId)) ?? Array.Empty<T>());
+        return await Task.FromResult(_memoryCache.Get<IList<T>>(GetListKey(listId)) ?? new List<T>());
     }
 
     /// <inheritdoc />
