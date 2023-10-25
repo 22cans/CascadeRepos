@@ -11,7 +11,10 @@ namespace CascadeRepos;
 /// <typeparam name="TK">The type of the keys used to access the items.</typeparam>
 public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
 {
-    private readonly IDateTimeProvider _dateTimeProvider;
+    /// <summary>
+    ///     The DateTime Provider.
+    /// </summary>
+    protected readonly IDateTimeProvider DateTimeProvider;
 
     /// <summary>
     ///     The type of expiration for the entity in the repository.
@@ -49,7 +52,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
         CascadeRepositoryOptions? options)
     {
         Logger = logger;
-        _dateTimeProvider = dateTimeProvider;
+        DateTimeProvider = dateTimeProvider;
         ExpirationType = options?.DefaultExpirationType ?? ExpirationType.Absolute;
         TimeToLive = options?.TimeToLiveInSeconds is not null
             ? TimeSpan.FromSeconds(options.TimeToLiveInSeconds.Value)
@@ -60,7 +63,7 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
 
         ExpirationType = entityOptions?.ExpirationType ?? ExpirationType;
         TimeToLive = entityOptions?.TimeToLiveInSeconds != null
-            ? TimeSpan.FromSeconds((int)entityOptions?.TimeToLiveInSeconds!)
+            ? TimeSpan.FromSeconds((int)entityOptions.TimeToLiveInSeconds!)
             : TimeToLive;
     }
 
@@ -419,12 +422,12 @@ public abstract class CascadeRepository<T, TK> : ICascadeRepository<T, TK>
     protected internal DateTimeOffset? CalculateExpirationTime()
     {
         DateTimeOffset? timeToLiveExpiration = TimeToLive != null
-            ? _dateTimeProvider.GetUtcNow().Add(TimeToLive.Value)
+            ? DateTimeProvider.GetUtcNow().Add(TimeToLive.Value)
             : null;
-
+    
         if (ExpirationTime != null && (timeToLiveExpiration == null || timeToLiveExpiration > ExpirationTime))
             return ExpirationTime;
-
+    
         return timeToLiveExpiration;
     }
 
