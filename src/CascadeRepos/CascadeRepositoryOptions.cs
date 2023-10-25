@@ -17,7 +17,7 @@ public class CascadeRepositoryOptions
     /// <summary>
     ///     The time to live (TTL) per entity, for the cached items, in seconds.
     /// </summary>
-    public IDictionary<string, (int? TimeToLiveInSeconds, ExpirationType? ExpirationType)?>? TimeToLiveInSecondsByEntity
+    public IDictionary<string, CascadeRepositoryEntityOptions?>? TimeToLiveInSecondsByEntity
     {
         get;
         init;
@@ -27,6 +27,23 @@ public class CascadeRepositoryOptions
     ///     The default type of expiration for entities not specified in <see cref="TimeToLiveInSecondsByEntity" />.
     /// </summary>
     public ExpirationType DefaultExpirationType { get; init; } = ExpirationType.Absolute;
+}
+
+/// <summary>
+///     Represents the options for the <see cref="CascadeRepository{T, K}" /> class per class.
+/// </summary>
+public class CascadeRepositoryEntityOptions
+{
+    /// <summary>
+    ///     The time to live (TTL) for the cached items, in seconds.
+    /// </summary>
+    public int? TimeToLiveInSeconds { get; init; }
+    
+    
+    /// <summary>
+    ///     The default type of expiration for entities not specified in <see cref="TimeToLiveInSeconds" />.
+    /// </summary>
+    public ExpirationType? ExpirationType { get; init; }
 }
 
 /// <summary>
