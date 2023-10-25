@@ -1,5 +1,4 @@
 using CascadeRepos.Extensions;
-using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -137,9 +136,13 @@ public class MemoryCacheRepositoryTests
             Options.Create(new MemoryCacheRepositoryOptions
             {
                 TimeToLiveInSecondsByEntity =
-                    new Dictionary<string, (int? TimeToLiveInSeconds, ExpirationType? ExpirationType)?>
+                    new Dictionary<string, CascadeRepositoryEntityOptions?>
                     {
-                        { nameof(SomeObject), (1, ExpirationType.Sliding) }
+                        {
+                            nameof(SomeObject),
+                            new CascadeRepositoryEntityOptions
+                                { TimeToLiveInSeconds = 1, ExpirationType = ExpirationType.Sliding }
+                        }
                     }
             }));
 
