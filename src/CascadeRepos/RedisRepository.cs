@@ -47,6 +47,19 @@ public class RedisRepository<T, TK> : CascadeRepository<T, TK>, IRedisRepository
         _database = connectionMultiplexer.GetDatabase();
     }
 
+    /// <summary>
+    ///     Calculates the expiration time for a cache item based on the configured time-to-live and absolute expiration time.
+    /// </summary>
+    /// <returns>The calculated expiration time, or <c>null</c> if no expiration time is set.</returns>
+    protected internal new TimeSpan? CalculateExpirationTime()
+    {
+        var expiry = base.CalculateExpirationTime();
+        if (!expiry.HasValue)
+            return null;
+
+        return expiry - DateTimeProvider.GetUtcNow();
+    }
+
     /// <inheritdoc />
     protected override async Task<T?> CoreGet(TK key, CancellationToken cancellationToken = default)
     {
@@ -81,7 +94,7 @@ public class RedisRepository<T, TK> : CascadeRepository<T, TK>, IRedisRepository
         await _database.StringSetAsync(k, JsonConvert.SerializeObject(item));
 
         if (expirationTime != null)
-            await _database.KeyExpireAsync(k!, expirationTime.Value.DateTime);
+            await _database.KeyExpireAsync(k!, expirationTime.Value);
     }
 
     /// <inheritdoc />
@@ -92,7 +105,7 @@ public class RedisRepository<T, TK> : CascadeRepository<T, TK>, IRedisRepository
         await _database.StringSetAsync(GetSetAllKey, JsonConvert.SerializeObject(items));
 
         if (expirationTime != null)
-            await _database.KeyExpireAsync(GetSetAllKey, expirationTime.Value.DateTime);
+            await _database.KeyExpireAsync(GetSetAllKey, expirationTime.Value);
     }
 
     /// <inheritdoc />
@@ -105,7 +118,7 @@ public class RedisRepository<T, TK> : CascadeRepository<T, TK>, IRedisRepository
         await _database.StringSetAsync(key, JsonConvert.SerializeObject(items));
 
         if (expirationTime != null)
-            await _database.KeyExpireAsync(key, expirationTime.Value.DateTime);
+            await _database.KeyExpireAsync(key, expirationTime.Value);
     }
 
     /// <inheritdoc />
